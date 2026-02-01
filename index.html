@@ -1,261 +1,1147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OMNI-VIEW | Construction Document Platform</title>
-  <link rel="stylesheet" href="css/app.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMNI-VIEW v1.0 | Construction Document Platform</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   OMNI-VIEW — DARK MATTER THEME
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --bg-root:#0f1115;--bg-panel:#161b22;--bg-header:#0d1117;--bg-surface:#1c2028;
+  --bg-input:#0d1117;--border:#30363d;--border-light:#3a414b;
+  --accent:#4fa3f7;--accent-glow:rgba(79,163,247,.35);--accent-dim:rgba(79,163,247,.12);
+  --orange:#ff6b35;--danger:#da3633;--success:#34d399;--warning:#fbbf24;
+  --highlight:#1f6feb;
+  --text:#e6edf3;--text-muted:#8b949e;--text-dim:#555d70;
+  --radius:5px;--shadow:0 4px 20px rgba(0,0,0,.5);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono','Cascadia Code','Fira Code',Consolas,monospace;
+  --topbar:42px;--toolbar:40px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg-root);-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font:inherit;border:none;background:none;color:inherit}
+input,select{font:inherit;color:var(--text);background:var(--bg-input);border:1px solid var(--border);padding:5px 8px;font-size:11px;outline:none;border-radius:3px;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+ul{list-style:none}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2a2f3a;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#3a414b}
+
+/* ── TOP BAR ───────────────────────────────────────────────────── */
+.top-bar{height:var(--topbar);background:var(--bg-header);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;justify-content:space-between;flex-shrink:0;user-select:none;z-index:100}
+.top-bar .logo{font-weight:800;color:var(--orange);display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:1px}
+.top-bar .logo .sub{opacity:.45;font-size:11px;font-weight:400;letter-spacing:0}
+.btn-action{background:var(--highlight);color:#fff;border:none;padding:6px 14px;border-radius:var(--radius);font-size:11px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-action:hover{background:#3b82f6}
+
+/* ── 3-COL GRID ────────────────────────────────────────────────── */
+.app-grid{display:grid;grid-template-columns:260px 1fr 310px;height:calc(100vh - var(--topbar))}
+
+/* ── LEFT: EXPLORER ────────────────────────────────────────────── */
+.col-explorer{background:var(--bg-root);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.explorer-header{padding:8px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center}
+.explorer-header input{flex:1}
+.file-list{flex:1;overflow-y:auto;padding:4px}
+.file-item{padding:5px 8px;font-size:12px;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:4px;border:1px solid transparent;transition:background .1s}
+.file-item:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.file-item.active{background:rgba(31,111,235,.2);border-color:var(--highlight);color:#fff}
+.file-item .ficon{width:20px;text-align:center;font-size:10px;font-weight:800;border-radius:3px;padding:2px 0;flex-shrink:0}
+.file-item .fname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .fsize{font-size:10px;color:var(--text-dim);font-family:var(--mono);flex-shrink:0}
+.folder-row{padding:5px 8px;font-size:12px;font-weight:600;color:var(--warning);cursor:pointer;display:flex;align-items:center;gap:6px;border-radius:4px}
+.folder-row:hover{background:rgba(255,255,255,.04)}
+.folder-row .arrow{transition:transform .15s;font-size:16px}
+.folder-row.collapsed .arrow{transform:rotate(-90deg)}
+.folder-children{padding-left:14px}
+.folder-children.collapsed-children{display:none}
+
+/* ── CENTER: CANVAS ────────────────────────────────────────────── */
+.col-canvas{background:#2a2a2e;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* Toolbar */
+.canvas-toolbar{height:var(--toolbar);background:#252526;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 10px;z-index:10;flex-shrink:0}
+.tool-btn{width:32px;height:32px;border:1px solid transparent;background:transparent;color:#aaa;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.tool-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.tool-btn.active{background:var(--orange);color:#000;box-shadow:0 0 10px var(--orange)}
+.tool-sep{width:1px;height:20px;background:#444;margin:0 3px}
+.zoom-display{font-size:11px;font-family:var(--mono);color:var(--text-muted);min-width:48px;text-align:center;user-select:none}
+
+/* Viewer */
+.viewer-container{flex:1;display:flex;overflow:hidden;position:relative}
+
+/* Thumbnails */
+.thumb-bar{width:140px;background:#1a1a1e;border-right:1px solid var(--border);overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.thumb-item{width:100%;aspect-ratio:.77;background:#fff;opacity:.55;cursor:pointer;position:relative;border:2px solid transparent;transition:.15s;border-radius:3px;overflow:hidden}
+.thumb-item:hover{opacity:.85;border-color:#666}
+.thumb-item.active{opacity:1;border-color:var(--orange);box-shadow:0 0 8px rgba(255,107,53,.3)}
+.thumb-item canvas{width:100%!important;height:100%!important;display:block}
+.thumb-num{position:absolute;bottom:2px;right:3px;background:rgba(0,0,0,.75);color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;font-family:var(--mono)}
+
+/* Scroll View */
+.scroll-view{flex:1;overflow:auto;padding:30px;display:flex;flex-direction:column;align-items:center;gap:24px;background-image:radial-gradient(#3a3a3e 1px,transparent 1px);background-size:20px 20px}
+
+/* Page Container (Layer Cake) */
+.page-wrap{position:relative;box-shadow:0 6px 28px rgba(0,0,0,.5);background:#fff;border-radius:2px}
+.page-wrap .pdf-canvas{display:block}
+.page-wrap .fabric-container{position:absolute!important;top:0;left:0}
+
+/* Empty + Welcome */
+#emptyState{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--text-dim);pointer-events:none;z-index:1}
+#emptyState .material-icons-round{font-size:64px;opacity:.2;display:block;margin-bottom:12px}
+
+/* ── RIGHT: CONTROLS / RENAME ──────────────────────────────────── */
+.col-controls{background:var(--bg-panel);border-left:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.ctrl-section{border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px}
+.ctrl-label{font-size:9px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:3px;display:block;letter-spacing:.8px}
+.ctrl-hint{font-size:10px;color:var(--text-dim);font-family:var(--mono);margin-bottom:6px}
+.chip-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
+.chip{background:rgba(31,111,235,.15);border:1px solid transparent;color:#7eb8f0;font-size:10px;padding:2px 7px;border-radius:10px;cursor:pointer;font-family:var(--mono);font-weight:600;transition:all .12s}
+.chip:hover{background:rgba(31,111,235,.3);color:#a5d6ff}
+.chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.row{display:flex;gap:5px}
+.flex-1{flex:1}
+.preview-box{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);padding:7px 9px;background:var(--accent-dim);border:1px solid rgba(79,163,247,.2);border-radius:4px;word-break:break-all;min-height:28px}
+.btn-rename{background:var(--highlight);color:#fff;border:none;padding:8px 12px;border-radius:var(--radius);font-size:11px;font-weight:700;width:100%;cursor:pointer;transition:background .15s}
+.btn-rename:hover{background:#3b82f6}
+.btn-rename:disabled{opacity:.4;pointer-events:none}
+.btn-clear{background:#2a2f3a;color:var(--text-muted);border:none;padding:6px 12px;border-radius:var(--radius);font-size:11px;font-weight:600;width:100%;cursor:pointer}
+.btn-clear:hover{background:#353b48;color:var(--text)}
+.history-item{font-size:10px;font-family:var(--mono);padding:3px 0;border-bottom:1px solid var(--border);color:var(--text-dim);display:flex;gap:4px}
+.history-item .h-old{color:var(--danger);text-decoration:line-through;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-item .h-new{color:var(--success);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── TOAST ─────────────────────────────────────────────────────── */
+#toastBox{position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column-reverse;gap:6px}
+.toast{padding:9px 16px;border-radius:var(--radius);font-size:12px;font-weight:500;box-shadow:var(--shadow);animation:toastIn .25s ease-out;max-width:360px;word-break:break-word}
+.toast.success{background:#065f46;color:#d1fae5;border-left:3px solid var(--success)}
+.toast.error{background:#7f1d1d;color:#fecaca;border-left:3px solid var(--danger)}
+.toast.info{background:#1e3a5f;color:#bfdbfe;border-left:3px solid var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast.out{animation:toastOut .2s forwards}
+@keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
+</style>
 </head>
 <body>
-  <!-- ═══════════════════════════════════════════════════════════════════
-       OMNI-VIEW — Unified Construction Document Platform
-       Chunk 1: Shell, File Explorer, Renaming Engine
-       ═══════════════════════════════════════════════════════════════════ -->
 
-  <!-- TOP BAR -->
-  <header id="top-bar">
-    <div id="top-bar-left">
-      <span id="app-logo">&#9670;</span>
-      <span id="app-title">OMNI-VIEW</span>
-      <span id="app-subtitle">Construction Document Platform</span>
+<!-- ═══ TOP BAR ═══════════════════════════════════════════════════ -->
+<div class="top-bar">
+  <div class="logo">
+    <span class="material-icons-round">bolt</span>
+    OMNI-VIEW
+    <span class="sub">v1.0 — Unified Engine</span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="statusDot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);transition:.3s"></span>
+    <button class="btn-action" onclick="openProject()">
+      <span class="material-icons-round" style="font-size:15px;vertical-align:middle;margin-right:4px">folder_open</span>
+      OPEN PROJECT
+    </button>
+  </div>
+</div>
+
+<!-- ═══ 3-COLUMN GRID ═════════════════════════════════════════════ -->
+<div class="app-grid">
+
+  <!-- ──── LEFT: FILE EXPLORER ─────────────────────────────────── -->
+  <div class="col-explorer">
+    <div class="explorer-header">
+      <span class="material-icons-round" style="font-size:16px;color:var(--text-dim)">search</span>
+      <input type="text" id="searchInput" placeholder="Filter files..." oninput="filterFiles()">
     </div>
-    <div id="top-bar-center">
-      <button id="btn-open-folder" class="top-btn" title="Open Workspace Folder">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 3h5l2 2h7v9H1V3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-        <span>Open Folder</span>
-      </button>
-      <button id="btn-refresh" class="top-btn" title="Refresh File List" disabled>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 0v5l3-2.5L8 0z" fill="currentColor"/></svg>
-        <span>Refresh</span>
-      </button>
-      <div id="workspace-path-display" title="No workspace open">No workspace open</div>
-    </div>
-    <div id="top-bar-right">
-      <span id="status-indicator"></span>
-    </div>
-  </header>
-
-  <!-- MAIN 3-PANE LAYOUT -->
-  <main id="main-container">
-
-    <!-- PANE 1: FILE EXPLORER -->
-    <aside id="pane-explorer">
-      <div class="pane-header">
-        <span class="pane-title">Explorer</span>
-        <div class="pane-actions">
-          <button id="btn-collapse-all" class="icon-btn" title="Collapse All">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.2"/></svg>
-          </button>
-          <button id="btn-select-all" class="icon-btn" title="Select All">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
-          </button>
-        </div>
-      </div>
-      <div id="explorer-search-box">
-        <input type="text" id="explorer-search" placeholder="Filter files..." autocomplete="off" spellcheck="false">
-      </div>
-      <div id="file-tree-container">
-        <div id="file-tree-empty">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" opacity="0.3">
-            <path d="M4 10h16l4 4h20v28H4V10z" stroke="currentColor" stroke-width="2"/>
-          </svg>
-          <p>Open a folder to begin</p>
-          <button id="btn-open-folder-empty" class="accent-btn">Open Folder</button>
-        </div>
-        <ul id="file-tree" class="hidden"></ul>
-      </div>
-      <!-- Multi-select action bar -->
-      <div id="batch-action-bar" class="hidden">
-        <span id="batch-count">0 selected</span>
-        <button id="btn-batch-rename" class="batch-btn" title="Batch Rename">Rename</button>
-      </div>
-    </aside>
-
-    <!-- RESIZE HANDLE 1 -->
-    <div class="resize-handle" data-resize="explorer"></div>
-
-    <!-- PANE 2: CANVAS / VIEWER -->
-    <section id="pane-canvas">
-      <div id="canvas-toolbar" class="hidden">
-        <span id="canvas-filename"></span>
-        <span id="canvas-filetype-badge"></span>
-      </div>
-      <div id="canvas-viewport">
-        <div id="canvas-welcome">
-          <div id="welcome-icon">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <rect x="8" y="16" width="64" height="52" rx="4" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-              <path d="M24 36h32M24 44h24M24 52h28" stroke="currentColor" stroke-width="1.5" opacity="0.15"/>
-              <circle cx="40" cy="40" r="16" stroke="var(--accent)" stroke-width="2" opacity="0.5"/>
-              <path d="M36 40l3 3 6-6" stroke="var(--accent)" stroke-width="2"/>
-            </svg>
-          </div>
-          <h2>OMNI-VIEW</h2>
-          <p>Select a file from the Explorer to begin</p>
-        </div>
-        <div id="canvas-content" class="hidden"></div>
-      </div>
-    </section>
-
-    <!-- RESIZE HANDLE 2 -->
-    <div class="resize-handle" data-resize="toolchest"></div>
-
-    <!-- PANE 3: TOOL CHEST / RENAME PANEL -->
-    <aside id="pane-toolchest">
-      <div class="pane-header">
-        <span class="pane-title">Renaming Engine</span>
-      </div>
-
-      <!-- Current file info -->
-      <div id="rename-current-file" class="panel-section">
-        <label class="section-label">Current File</label>
-        <div id="rename-current-name" class="current-file-name">No file selected</div>
-      </div>
-
-      <!-- Live preview of new name -->
-      <div id="rename-preview-section" class="panel-section">
-        <label class="section-label">New Name Preview</label>
-        <div id="rename-preview" class="rename-preview-box">—</div>
-      </div>
-
-      <!-- Taxonomy segments -->
-      <div id="rename-taxonomy" class="panel-section">
-        <label class="section-label">Taxonomy Builder</label>
-        <p class="section-hint">Class – Rev – Ver – Spec – Date – Client – Job – Desc</p>
-
-        <!-- CLASS -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Class</label>
-          <div class="quick-buttons" id="qb-class">
-            <button data-field="class" data-value="DWG">DWG</button>
-            <button data-field="class" data-value="SPEC">SPEC</button>
-            <button data-field="class" data-value="SUB">SUB</button>
-            <button data-field="class" data-value="RFI">RFI</button>
-            <button data-field="class" data-value="CO">CO</button>
-            <button data-field="class" data-value="ASI">ASI</button>
-            <button data-field="class" data-value="PM">PM</button>
-            <button data-field="class" data-value="PHOTO">PHOTO</button>
-            <button data-field="class" data-value="RPT">RPT</button>
-            <button data-field="class" data-value="LOG">LOG</button>
-            <button data-field="class" data-value="SCHED">SCHED</button>
-            <button data-field="class" data-value="CORR">CORR</button>
-          </div>
-        </div>
-
-        <!-- REV -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Revision</label>
-          <div class="quick-buttons" id="qb-rev">
-            <button data-field="rev" data-value="R0">R0</button>
-            <button data-field="rev" data-value="R1">R1</button>
-            <button data-field="rev" data-value="R2">R2</button>
-            <button data-field="rev" data-value="R3">R3</button>
-            <button data-field="rev" data-value="R4">R4</button>
-            <button data-field="rev" data-value="R5">R5</button>
-            <button data-field="rev" data-value="RA">RA</button>
-            <button data-field="rev" data-value="RB">RB</button>
-            <button data-field="rev" data-value="RC">RC</button>
-            <button data-field="rev" data-value="IFC">IFC</button>
-            <button data-field="rev" data-value="ABU">ABU</button>
-          </div>
-        </div>
-
-        <!-- VER -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Version</label>
-          <div class="quick-buttons" id="qb-ver">
-            <button data-field="ver" data-value="V1">V1</button>
-            <button data-field="ver" data-value="V2">V2</button>
-            <button data-field="ver" data-value="V3">V3</button>
-            <button data-field="ver" data-value="FINAL">FINAL</button>
-            <button data-field="ver" data-value="DRAFT">DRAFT</button>
-          </div>
-        </div>
-
-        <!-- SPEC -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Spec / Discipline</label>
-          <div class="quick-buttons" id="qb-spec">
-            <button data-field="spec" data-value="ARCH">ARCH</button>
-            <button data-field="spec" data-value="STRUC">STRUC</button>
-            <button data-field="spec" data-value="MEP">MEP</button>
-            <button data-field="spec" data-value="ELEC">ELEC</button>
-            <button data-field="spec" data-value="PLMB">PLMB</button>
-            <button data-field="spec" data-value="HVAC">HVAC</button>
-            <button data-field="spec" data-value="CIVIL">CIVIL</button>
-            <button data-field="spec" data-value="FIRE">FIRE</button>
-            <button data-field="spec" data-value="GEN">GEN</button>
-          </div>
-        </div>
-
-        <!-- DATE -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Date</label>
-          <div class="tax-row">
-            <input type="date" id="tax-date" class="tax-input">
-            <button id="btn-date-today" class="quick-btn-sm">Today</button>
-          </div>
-        </div>
-
-        <!-- CLIENT -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Client</label>
-          <div class="tax-row">
-            <input type="text" id="tax-client" class="tax-input" placeholder="e.g. ACME" maxlength="20" autocomplete="off" spellcheck="false">
-            <div id="client-predict" class="predict-box hidden"></div>
-          </div>
-        </div>
-
-        <!-- JOB -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Job #</label>
-          <div class="tax-row">
-            <input type="text" id="tax-job" class="tax-input" placeholder="e.g. 2024-0150" maxlength="20" autocomplete="off" spellcheck="false">
-            <div id="job-predict" class="predict-box hidden"></div>
-          </div>
-        </div>
-
-        <!-- DESC -->
-        <div class="taxonomy-group">
-          <label class="tax-label">Description</label>
-          <input type="text" id="tax-desc" class="tax-input tax-input-wide" placeholder="e.g. FloorPlan-Level2" maxlength="60" autocomplete="off" spellcheck="false">
-        </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div id="rename-actions" class="panel-section">
-        <button id="btn-apply-rename" class="action-btn primary" disabled>Apply Rename</button>
-        <button id="btn-clear-rename" class="action-btn secondary">Clear All</button>
-      </div>
-
-      <!-- Rename history -->
-      <div id="rename-history-section" class="panel-section">
-        <label class="section-label">Recent Renames</label>
-        <ul id="rename-history"></ul>
-      </div>
-    </aside>
-  </main>
-
-  <!-- TOAST NOTIFICATIONS -->
-  <div id="toast-container"></div>
-
-  <!-- MODAL OVERLAY -->
-  <div id="modal-overlay" class="hidden">
-    <div id="modal-content">
-      <div id="modal-header">
-        <span id="modal-title"></span>
-        <button id="modal-close" class="icon-btn">&times;</button>
-      </div>
-      <div id="modal-body"></div>
-      <div id="modal-footer">
-        <button id="modal-cancel" class="action-btn secondary">Cancel</button>
-        <button id="modal-confirm" class="action-btn primary">Confirm</button>
+    <div id="fileList" class="file-list">
+      <div id="explorerEmpty" style="padding:30px;text-align:center;opacity:.4">
+        <span class="material-icons-round" style="font-size:40px;display:block;margin-bottom:8px">folder_open</span>
+        Open a project folder to begin
       </div>
     </div>
   </div>
 
-  <script src="js/app.js"></script>
-  <script src="js/file-explorer.js"></script>
-  <script src="js/renaming-engine.js"></script>
+  <!-- ──── CENTER: UNIFIED CANVAS ──────────────────────────────── -->
+  <div class="col-canvas">
+    <div class="canvas-toolbar">
+      <button class="tool-btn active" data-tool="cursor" title="Select / Move" onclick="setTool('cursor')">
+        <span class="material-icons-round" style="font-size:18px">near_me</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="pen" title="Pen (Red)" onclick="setTool('pen')">
+        <span class="material-icons-round" style="font-size:18px">edit</span>
+      </button>
+      <button class="tool-btn" data-tool="highlighter" title="Highlighter (Yellow)" onclick="setTool('highlighter')">
+        <span class="material-icons-round" style="font-size:18px">border_color</span>
+      </button>
+      <button class="tool-btn" data-tool="text" title="Text Box" onclick="setTool('text')">
+        <span class="material-icons-round" style="font-size:18px">title</span>
+      </button>
+      <button class="tool-btn" data-tool="cloud" title="Revision Cloud" onclick="setTool('cloud')">
+        <span class="material-icons-round" style="font-size:18px">cloud_queue</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="eraser" title="Delete Selected" onclick="setTool('eraser')">
+        <span class="material-icons-round" style="font-size:18px">delete_outline</span>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" title="Zoom Out" onclick="changeZoom(-0.25)">
+        <span class="material-icons-round" style="font-size:18px">remove</span>
+      </button>
+      <span class="zoom-display" id="zoomDisplay">100%</span>
+      <button class="tool-btn" title="Zoom In" onclick="changeZoom(0.25)">
+        <span class="material-icons-round" style="font-size:18px">add</span>
+      </button>
+      <button class="tool-btn" title="Fit Width" onclick="fitWidth()">
+        <span class="material-icons-round" style="font-size:18px">fit_screen</span>
+      </button>
+    </div>
+
+    <div class="viewer-container">
+      <div class="thumb-bar" id="thumbBar"></div>
+      <div class="scroll-view" id="scrollView">
+        <div id="emptyState">
+          <span class="material-icons-round">description</span>
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px">OMNI-VIEW</div>
+          <div>Select a PDF or image from the Explorer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──── RIGHT: CONTROLS / RENAMING ENGINE ───────────────────── -->
+  <div class="col-controls">
+
+    <!-- Current File -->
+    <div class="ctrl-section">
+      <span class="ctrl-label">Active File</span>
+      <div id="activeFileName" style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:5px 7px;background:var(--bg-input);border-radius:3px;word-break:break-all;min-height:24px">
+        No file selected
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="ctrl-section">
+      <span class="ctrl-label">New Name Preview</span>
+      <div class="preview-box" id="renamePreview">—</div>
+    </div>
+
+    <!-- Taxonomy -->
+    <div class="ctrl-section">
+      <span class="ctrl-label">Taxonomy Builder</span>
+      <div class="ctrl-hint">Class – Rev – Ver – Spec – Date – Client – Job – Desc</div>
+
+      <span class="ctrl-label" style="margin-top:6px">Class</span>
+      <div class="chip-row" id="chipClass">
+        <span class="chip" data-f="class" data-v="DWG">DWG</span>
+        <span class="chip" data-f="class" data-v="SPEC">SPEC</span>
+        <span class="chip" data-f="class" data-v="SUB">SUB</span>
+        <span class="chip" data-f="class" data-v="RFI">RFI</span>
+        <span class="chip" data-f="class" data-v="CO">CO</span>
+        <span class="chip" data-f="class" data-v="ASI">ASI</span>
+        <span class="chip" data-f="class" data-v="SHOP">SHOP</span>
+        <span class="chip" data-f="class" data-v="PHOTO">PHOTO</span>
+        <span class="chip" data-f="class" data-v="RPT">RPT</span>
+        <span class="chip" data-f="class" data-v="SCHED">SCHED</span>
+        <span class="chip" data-f="class" data-v="CORR">CORR</span>
+        <span class="chip" data-f="class" data-v="LOG">LOG</span>
+        <span class="chip" data-f="class" data-v="PM">PM</span>
+        <span class="chip" data-f="class" data-v="SAF">SAF</span>
+        <span class="chip" data-f="class" data-v="QC">QC</span>
+      </div>
+
+      <span class="ctrl-label">Revision</span>
+      <div class="chip-row" id="chipRev">
+        <span class="chip" data-f="rev" data-v="R00">R00</span>
+        <span class="chip" data-f="rev" data-v="R01">R01</span>
+        <span class="chip" data-f="rev" data-v="R02">R02</span>
+        <span class="chip" data-f="rev" data-v="R03">R03</span>
+        <span class="chip" data-f="rev" data-v="R04">R04</span>
+        <span class="chip" data-f="rev" data-v="RA">RA</span>
+        <span class="chip" data-f="rev" data-v="RB">RB</span>
+        <span class="chip" data-f="rev" data-v="RC">RC</span>
+      </div>
+
+      <span class="ctrl-label">Version</span>
+      <div class="chip-row" id="chipVer">
+        <span class="chip" data-f="ver" data-v="V1">V1</span>
+        <span class="chip" data-f="ver" data-v="V2">V2</span>
+        <span class="chip" data-f="ver" data-v="V3">V3</span>
+        <span class="chip" data-f="ver" data-v="DRAFT">DRAFT</span>
+        <span class="chip" data-f="ver" data-v="FINAL">FINAL</span>
+        <span class="chip" data-f="ver" data-v="IFC">IFC</span>
+        <span class="chip" data-f="ver" data-v="IFR">IFR</span>
+        <span class="chip" data-f="ver" data-v="RECORD">RECORD</span>
+      </div>
+
+      <span class="ctrl-label">Discipline / Spec</span>
+      <div class="chip-row" id="chipSpec">
+        <span class="chip" data-f="spec" data-v="ARCH">ARCH</span>
+        <span class="chip" data-f="spec" data-v="STRUC">STRUC</span>
+        <span class="chip" data-f="spec" data-v="MEP">MEP</span>
+        <span class="chip" data-f="spec" data-v="ELEC">ELEC</span>
+        <span class="chip" data-f="spec" data-v="MECH">MECH</span>
+        <span class="chip" data-f="spec" data-v="PLMB">PLMB</span>
+        <span class="chip" data-f="spec" data-v="CIVIL">CIVIL</span>
+        <span class="chip" data-f="spec" data-v="FIRE">FIRE</span>
+        <span class="chip" data-f="spec" data-v="GEN">GEN</span>
+      </div>
+
+      <div class="row" style="margin-top:4px">
+        <div class="flex-1">
+          <span class="ctrl-label">Date</span>
+          <div class="row">
+            <input type="date" id="taxDate" style="flex:1">
+            <button class="btn-action" style="padding:4px 8px;font-size:10px;flex-shrink:0" onclick="setToday()">TODAY</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:4px">
+        <div class="flex-1">
+          <span class="ctrl-label">Client</span>
+          <input type="text" id="taxClient" placeholder="e.g. ACME" maxlength="20" oninput="onTaxInput()">
+        </div>
+        <div class="flex-1">
+          <span class="ctrl-label">Job #</span>
+          <input type="text" id="taxJob" placeholder="e.g. 2024-0150" maxlength="20" oninput="onTaxInput()">
+        </div>
+      </div>
+
+      <div style="margin-top:4px">
+        <span class="ctrl-label">Description</span>
+        <input type="text" id="taxDesc" placeholder="e.g. FloorPlan-Level2" maxlength="60" oninput="onTaxInput()">
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <button class="btn-rename" id="btnRename" disabled onclick="applyRename()">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:middle;margin-right:4px">drive_file_rename_outline</span>
+      RENAME FILE
+    </button>
+    <button class="btn-clear" onclick="clearTaxonomy()">Clear All</button>
+
+    <!-- History -->
+    <div style="margin-top:6px">
+      <span class="ctrl-label">Recent Renames</span>
+      <div id="renameHistory" style="max-height:120px;overflow-y:auto"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ TOAST CONTAINER ═══════════════════════════════════════════ -->
+<div id="toastBox"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   OMNI-VIEW v1.0 — COMPLETE ENGINE
+   File System + PDF.js Rendering + Fabric.js Markup + Renaming
+   ═══════════════════════════════════════════════════════════════════ */
+'use strict';
+
+// ─── GLOBAL STATE ────────────────────────────────────────────────
+let dirHandle = null;           // root FileSystemDirectoryHandle
+let allFiles = [];              // [{name, path, handle, parentHandle, size, ext}]
+let activeFileEntry = null;     // currently loaded file
+let currentPdf = null;          // pdfjs document proxy
+let pageCanvases = [];          // [{pdfCanvas, fabricCanvas, fabricInstance, pageNum}]
+let currentScale = 1.0;
+let currentTool = 'cursor';
+let isPanning = false;
+let spaceDown = false;
+let panStart = {x:0, y:0, scrollX:0, scrollY:0};
+
+// Taxonomy state
+const tax = { class:'', rev:'', ver:'', spec:'', date:'', client:'', job:'', desc:'' };
+
+// Predictive memory
+const STORE_CLIENTS = 'ov_clients';
+const STORE_JOBS = 'ov_jobs';
+let knownClients = loadLS(STORE_CLIENTS);
+let knownJobs = loadLS(STORE_JOBS);
+
+// Rename history
+const renameHistory = [];
+
+// ─── FILE TYPE MAP ───────────────────────────────────────────────
+const FTYPES = {
+  pdf:{icon:'picture_as_pdf',color:'#e74c3c',label:'PDF'},
+  docx:{icon:'description',color:'#3b82f6',label:'DOC'},doc:{icon:'description',color:'#3b82f6',label:'DOC'},
+  xlsx:{icon:'table_chart',color:'#22c55e',label:'XLS'},xls:{icon:'table_chart',color:'#22c55e',label:'XLS'},
+  csv:{icon:'table_chart',color:'#22c55e',label:'CSV'},
+  png:{icon:'image',color:'#a855f7',label:'IMG'},jpg:{icon:'image',color:'#a855f7',label:'IMG'},
+  jpeg:{icon:'image',color:'#a855f7',label:'IMG'},gif:{icon:'image',color:'#a855f7',label:'IMG'},
+  bmp:{icon:'image',color:'#a855f7',label:'IMG'},tif:{icon:'image',color:'#a855f7',label:'IMG'},
+  tiff:{icon:'image',color:'#a855f7',label:'IMG'},svg:{icon:'image',color:'#a855f7',label:'IMG'},
+  dwg:{icon:'architecture',color:'#f59e0b',label:'CAD'},dxf:{icon:'architecture',color:'#f59e0b',label:'CAD'},
+  txt:{icon:'article',color:'#8b949e',label:'TXT'},rtf:{icon:'article',color:'#8b949e',label:'TXT'},
+};
+function ftype(name){const e=name.lastIndexOf('.');const ext=e>0?name.slice(e+1).toLowerCase():'';return FTYPES[ext]||{icon:'insert_drive_file',color:'#555',label:'FILE'};}
+function fext(name){const e=name.lastIndexOf('.');return e>0?name.slice(e+1).toLowerCase():'';}
+function fmtSize(b){if(!b)return'';const u=['B','KB','MB','GB'];const i=b?Math.floor(Math.log(b)/Math.log(1024)):0;return(b/Math.pow(1024,i)).toFixed(i?1:0)+' '+u[i];}
+
+// ─── TOAST ───────────────────────────────────────────────────────
+function toast(msg,type='info',dur=3000){
+  const el=document.createElement('div');
+  el.className='toast '+type;el.textContent=msg;
+  document.getElementById('toastBox').appendChild(el);
+  setTimeout(()=>{el.classList.add('out');el.addEventListener('animationend',()=>el.remove());},dur);
+}
+
+// ─── LOCAL STORAGE ───────────────────────────────────────────────
+function loadLS(k){try{return JSON.parse(localStorage.getItem(k))||[];}catch{return[];}}
+function saveLS(k,a){try{localStorage.setItem(k,JSON.stringify(a));}catch{}}
+function addKnown(arr,key,v){v=v.trim().toUpperCase();if(!v||arr.includes(v))return;arr.unshift(v);if(arr.length>80)arr.length=80;saveLS(key,arr);}
+
+// ═══════════════════════════════════════════════════════════════════
+// FILE SYSTEM ACCESS
+// ═══════════════════════════════════════════════════════════════════
+async function openProject(){
+  if(!('showDirectoryPicker' in window)){toast('Use Chrome 86+ or Edge 86+','error',5000);return;}
+  try{
+    dirHandle = await window.showDirectoryPicker({mode:'readwrite'});
+    document.getElementById('statusDot').style.background='var(--success)';
+    toast('Opened: '+dirHandle.name,'success');
+    await scanFiles();
+  }catch(e){if(e.name!=='AbortError')toast('Error: '+e.message,'error');}
+}
+
+async function scanFiles(){
+  allFiles=[];
+  await walkDir(dirHandle,'',dirHandle);
+  renderFileList();
+}
+
+async function walkDir(dh,prefix,parentDh){
+  try{
+    for await(const [name,handle] of dh.entries()){
+      const path=prefix?prefix+'/'+name:name;
+      if(handle.kind==='file'){
+        let size=0;try{size=(await handle.getFile()).size;}catch{}
+        allFiles.push({name,path,handle,parentHandle:dh,size,ext:fext(name)});
+      } else if(handle.kind==='directory'){
+        await walkDir(handle,path,dh);
+      }
+    }
+  }catch(e){toast('Read error: '+e.message,'error');}
+}
+
+// ─── FILE LIST RENDERING ─────────────────────────────────────────
+function renderFileList(){
+  const el=document.getElementById('fileList');
+  const ee=document.getElementById('explorerEmpty');
+  if(allFiles.length===0){el.innerHTML='';el.appendChild(ee);ee.style.display='';return;}
+  ee.style.display='none';
+
+  // Group by folder
+  const tree={};
+  allFiles.forEach(f=>{
+    const parts=f.path.split('/');
+    if(parts.length===1){
+      if(!tree['__root__'])tree['__root__']=[];
+      tree['__root__'].push(f);
+    } else {
+      const folder=parts.slice(0,-1).join('/');
+      if(!tree[folder])tree[folder]=[];
+      tree[folder].push(f);
+    }
+  });
+
+  // Sort within each group
+  Object.values(tree).forEach(arr=>arr.sort((a,b)=>a.name.localeCompare(b.name)));
+
+  el.innerHTML='';
+  const sortedKeys=Object.keys(tree).sort((a,b)=>a==='__root__'?-1:b==='__root__'?1:a.localeCompare(b));
+  sortedKeys.forEach(folder=>{
+    if(folder!=='__root__'){
+      const fDiv=document.createElement('div');
+      fDiv.className='folder-row';
+      fDiv.innerHTML=`<span class="material-icons-round arrow" style="font-size:16px">expand_more</span>
+        <span class="material-icons-round" style="font-size:16px;color:var(--warning)">folder</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(folder)}</span>`;
+      const childDiv=document.createElement('div');
+      childDiv.className='folder-children';
+      fDiv.addEventListener('click',()=>{fDiv.classList.toggle('collapsed');childDiv.classList.toggle('collapsed-children');});
+      el.appendChild(fDiv);
+      tree[folder].forEach(f=>childDiv.appendChild(makeFileItem(f)));
+      el.appendChild(childDiv);
+    } else {
+      tree[folder].forEach(f=>el.appendChild(makeFileItem(f)));
+    }
+  });
+}
+
+function makeFileItem(f){
+  const ft=ftype(f.name);
+  const d=document.createElement('div');
+  d.className='file-item';
+  d.dataset.path=f.path;
+  d.dataset.name=f.name.toLowerCase();
+  d.innerHTML=`<span class="material-icons-round ficon" style="color:${ft.color};font-size:16px">${ft.icon}</span>
+    <span class="fname" title="${esc(f.path)}">${esc(f.name)}</span>
+    <span class="fsize">${fmtSize(f.size)}</span>`;
+  d.addEventListener('click',()=>loadFile(f,d));
+  return d;
+}
+
+function filterFiles(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.file-item').forEach(el=>{
+    el.style.display=(el.dataset.name||'').includes(q)?'':'none';
+  });
+  document.querySelectorAll('.folder-row').forEach(fr=>{
+    const children=fr.nextElementSibling;
+    if(!children)return;
+    const vis=[...children.querySelectorAll('.file-item')].some(c=>c.style.display!=='none');
+    fr.style.display=vis?'':'none';
+    children.style.display=vis?'':'none';
+  });
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ═══════════════════════════════════════════════════════════════════
+// FILE LOADING
+// ═══════════════════════════════════════════════════════════════════
+async function loadFile(entry, rowEl){
+  // Mark active in explorer
+  document.querySelectorAll('.file-item.active').forEach(e=>e.classList.remove('active'));
+  if(rowEl)rowEl.classList.add('active');
+  activeFileEntry=entry;
+  document.getElementById('activeFileName').textContent=entry.name;
+  updateRenamePreview();
+
+  const ext=entry.ext;
+  if(ext==='pdf'){
+    await loadPDF(entry);
+  } else if(['png','jpg','jpeg','gif','bmp','tif','tiff','svg'].includes(ext)){
+    await loadImage(entry);
+  } else {
+    showUnsupported(entry);
+  }
+}
+
+// ─── PDF LOADING ─────────────────────────────────────────────────
+async function loadPDF(entry){
+  const scrollView=document.getElementById('scrollView');
+  const thumbBar=document.getElementById('thumbBar');
+  const emptyState=document.getElementById('emptyState');
+
+  // Cleanup previous
+  destroyFabricInstances();
+  scrollView.innerHTML='';
+  thumbBar.innerHTML='';
+  pageCanvases=[];
+  emptyState?.remove();
+
+  toast('Loading PDF...','info',1500);
+
+  try{
+    const file=await entry.handle.getFile();
+    const buf=await file.arrayBuffer();
+    currentPdf=await pdfjsLib.getDocument({data:buf}).promise;
+    const numPages=currentPdf.numPages;
+
+    // Auto-fit scale
+    const sv=document.getElementById('scrollView');
+    const firstPage=await currentPdf.getPage(1);
+    const vp0=firstPage.getViewport({scale:1});
+    const availW=sv.clientWidth-80;
+    currentScale=Math.min(Math.max(availW/vp0.width,0.5),3);
+    document.getElementById('zoomDisplay').textContent=Math.round(currentScale*100)+'%';
+
+    // Render all pages
+    for(let i=1;i<=numPages;i++){
+      await renderPage(i, scrollView, thumbBar);
+    }
+
+    // Activate first thumbnail
+    const firstThumb=thumbBar.querySelector('.thumb-item');
+    if(firstThumb)firstThumb.classList.add('active');
+
+    toast(`Loaded ${numPages} page${numPages>1?'s':''}`,'success');
+  }catch(e){
+    toast('PDF load error: '+e.message,'error');
+    scrollView.innerHTML=`<div style="color:var(--danger);padding:40px;text-align:center">Failed to load PDF: ${esc(e.message)}</div>`;
+  }
+}
+
+async function renderPage(pageNum, scrollView, thumbBar){
+  const page=await currentPdf.getPage(pageNum);
+  const viewport=page.getViewport({scale:currentScale});
+
+  // ── Page wrapper (Layer Cake) ──
+  const wrap=document.createElement('div');
+  wrap.className='page-wrap';
+  wrap.id='page-'+pageNum;
+  wrap.style.width=Math.floor(viewport.width)+'px';
+  wrap.style.height=Math.floor(viewport.height)+'px';
+
+  // Bottom layer: PDF canvas
+  const pdfCanvas=document.createElement('canvas');
+  pdfCanvas.className='pdf-canvas';
+  pdfCanvas.width=Math.floor(viewport.width*window.devicePixelRatio);
+  pdfCanvas.height=Math.floor(viewport.height*window.devicePixelRatio);
+  pdfCanvas.style.width=Math.floor(viewport.width)+'px';
+  pdfCanvas.style.height=Math.floor(viewport.height)+'px';
+  wrap.appendChild(pdfCanvas);
+
+  // Render PDF
+  const ctx=pdfCanvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  await page.render({canvasContext:ctx,viewport:viewport}).promise;
+
+  // Top layer: Fabric.js canvas
+  const fabricEl=document.createElement('canvas');
+  fabricEl.id='fabric-'+pageNum;
+  fabricEl.width=Math.floor(viewport.width);
+  fabricEl.height=Math.floor(viewport.height);
+  wrap.appendChild(fabricEl);
+
+  scrollView.appendChild(wrap);
+
+  // Init Fabric
+  const fc=new fabric.Canvas('fabric-'+pageNum,{
+    width:Math.floor(viewport.width),
+    height:Math.floor(viewport.height),
+    containerClass:'fabric-container',
+    selection:currentTool==='cursor',
+  });
+  configureFabric(fc);
+  pageCanvases.push({pdfCanvas,fabricCanvas:fabricEl,fabricInstance:fc,pageNum,page});
+
+  // ── Thumbnail ──
+  const thumbWrap=document.createElement('div');
+  thumbWrap.className='thumb-item';
+  thumbWrap.dataset.page=pageNum;
+  const thumbCanvas=document.createElement('canvas');
+  const thumbScale=120/viewport.width*currentScale;
+  const tvp=page.getViewport({scale:thumbScale});
+  thumbCanvas.width=Math.floor(tvp.width);
+  thumbCanvas.height=Math.floor(tvp.height);
+  thumbCanvas.style.width='100%';
+  thumbCanvas.style.height='100%';
+  const tctx=thumbCanvas.getContext('2d');
+  await page.render({canvasContext:tctx,viewport:tvp}).promise;
+  thumbWrap.appendChild(thumbCanvas);
+
+  const numLabel=document.createElement('span');
+  numLabel.className='thumb-num';
+  numLabel.textContent=pageNum;
+  thumbWrap.appendChild(numLabel);
+
+  thumbWrap.addEventListener('click',()=>{
+    document.querySelectorAll('.thumb-item.active').forEach(t=>t.classList.remove('active'));
+    thumbWrap.classList.add('active');
+    const target=document.getElementById('page-'+pageNum);
+    if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  thumbBar.appendChild(thumbWrap);
+}
+
+// ─── IMAGE LOADING ───────────────────────────────────────────────
+async function loadImage(entry){
+  const scrollView=document.getElementById('scrollView');
+  const thumbBar=document.getElementById('thumbBar');
+  destroyFabricInstances();
+  scrollView.innerHTML='';
+  thumbBar.innerHTML='';
+  pageCanvases=[];
+  const emptyState=document.getElementById('emptyState');
+  emptyState?.remove();
+
+  try{
+    const file=await entry.handle.getFile();
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url;});
+
+    const sv=document.getElementById('scrollView');
+    const availW=sv.clientWidth-80;
+    currentScale=Math.min(availW/img.width,2);
+    document.getElementById('zoomDisplay').textContent=Math.round(currentScale*100)+'%';
+
+    const w=Math.floor(img.width*currentScale);
+    const h=Math.floor(img.height*currentScale);
+
+    const wrap=document.createElement('div');
+    wrap.className='page-wrap';
+    wrap.id='page-1';
+    wrap.style.width=w+'px';
+    wrap.style.height=h+'px';
+
+    // Image as bottom layer
+    const imgCanvas=document.createElement('canvas');
+    imgCanvas.className='pdf-canvas';
+    imgCanvas.width=w*window.devicePixelRatio;
+    imgCanvas.height=h*window.devicePixelRatio;
+    imgCanvas.style.width=w+'px';
+    imgCanvas.style.height=h+'px';
+    const ictx=imgCanvas.getContext('2d');
+    ictx.scale(window.devicePixelRatio,window.devicePixelRatio);
+    ictx.drawImage(img,0,0,w,h);
+    wrap.appendChild(imgCanvas);
+
+    // Fabric overlay
+    const fabricEl=document.createElement('canvas');
+    fabricEl.id='fabric-1';
+    fabricEl.width=w;
+    fabricEl.height=h;
+    wrap.appendChild(fabricEl);
+    scrollView.appendChild(wrap);
+
+    const fc=new fabric.Canvas('fabric-1',{width:w,height:h,containerClass:'fabric-container',selection:currentTool==='cursor'});
+    configureFabric(fc);
+    pageCanvases.push({pdfCanvas:imgCanvas,fabricCanvas:fabricEl,fabricInstance:fc,pageNum:1,page:null});
+
+    URL.revokeObjectURL(url);
+    toast('Image loaded','success');
+  }catch(e){
+    toast('Image error: '+e.message,'error');
+  }
+}
+
+function showUnsupported(entry){
+  const scrollView=document.getElementById('scrollView');
+  destroyFabricInstances();
+  scrollView.innerHTML='';
+  pageCanvases=[];
+  const ft=ftype(entry.name);
+  scrollView.innerHTML=`<div style="text-align:center;padding:60px;color:var(--text-muted)">
+    <span class="material-icons-round" style="font-size:64px;color:${ft.color};display:block;margin-bottom:16px">${ft.icon}</span>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">${esc(entry.name)}</div>
+    <div style="font-size:12px">${ft.label} • ${fmtSize(entry.size)}</div>
+    <div style="margin-top:16px;color:var(--success);font-size:13px">
+      <span class="material-icons-round" style="font-size:16px;vertical-align:middle">check_circle</span>
+      File handle acquired — ready for rename operations
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ZOOM
+// ═══════════════════════════════════════════════════════════════════
+function changeZoom(delta){
+  const newScale=Math.min(Math.max(currentScale+delta,0.25),5);
+  if(newScale===currentScale)return;
+  currentScale=newScale;
+  document.getElementById('zoomDisplay').textContent=Math.round(currentScale*100)+'%';
+  reRenderAll();
+}
+
+function fitWidth(){
+  const sv=document.getElementById('scrollView');
+  if(!currentPdf&&pageCanvases.length===0)return;
+  if(currentPdf){
+    currentPdf.getPage(1).then(p=>{
+      const vp=p.getViewport({scale:1});
+      currentScale=Math.min((sv.clientWidth-80)/vp.width,5);
+      document.getElementById('zoomDisplay').textContent=Math.round(currentScale*100)+'%';
+      reRenderAll();
+    });
+  }
+}
+
+async function reRenderAll(){
+  if(!currentPdf&&pageCanvases.length===0)return;
+
+  // Save markups
+  const savedMarkups=pageCanvases.map(pc=>({pageNum:pc.pageNum,json:pc.fabricInstance.toJSON()}));
+
+  if(currentPdf){
+    const scrollView=document.getElementById('scrollView');
+    const thumbBar=document.getElementById('thumbBar');
+    destroyFabricInstances();
+    scrollView.innerHTML='';
+    thumbBar.innerHTML='';
+    pageCanvases=[];
+    for(let i=1;i<=currentPdf.numPages;i++){
+      await renderPage(i,scrollView,thumbBar);
+    }
+    // Restore markups
+    savedMarkups.forEach(sm=>{
+      const pc=pageCanvases.find(p=>p.pageNum===sm.pageNum);
+      if(pc&&sm.json.objects&&sm.json.objects.length>0){
+        pc.fabricInstance.loadFromJSON(sm.json,()=>{pc.fabricInstance.renderAll();});
+      }
+    });
+    const firstThumb=thumbBar.querySelector('.thumb-item');
+    if(firstThumb)firstThumb.classList.add('active');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FABRIC.JS TOOL CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════
+function configureFabric(fc){
+  applyToolToFabric(fc, currentTool);
+
+  // Text tool: click to insert
+  fc.on('mouse:down',function(opt){
+    if(currentTool==='text'&&!opt.target){
+      const pointer=fc.getPointer(opt.e);
+      const txt=new fabric.IText('Text',{
+        left:pointer.x,top:pointer.y,
+        fontSize:16,fill:'#e60000',fontFamily:'Arial',
+        fontWeight:'bold',
+        editable:true,
+        padding:4,
+      });
+      fc.add(txt);
+      fc.setActiveObject(txt);
+      txt.enterEditing();
+      fc.renderAll();
+    }
+    if(currentTool==='cloud'&&!opt.target){
+      const pointer=fc.getPointer(opt.e);
+      insertCloud(fc,pointer.x,pointer.y);
+    }
+    if(currentTool==='eraser'&&opt.target){
+      fc.remove(opt.target);
+      fc.discardActiveObject();
+      fc.renderAll();
+    }
+  });
+}
+
+function applyToolToFabric(fc, tool){
+  fc.isDrawingMode=false;
+  fc.selection=(tool==='cursor');
+  fc.defaultCursor='default';
+  fc.hoverCursor='default';
+  fc.forEachObject(o=>{o.selectable=(tool==='cursor');o.evented=(tool==='cursor'||tool==='eraser');});
+
+  if(tool==='pen'){
+    fc.isDrawingMode=true;
+    fc.freeDrawingBrush=new fabric.PencilBrush(fc);
+    fc.freeDrawingBrush.color='#e60000';
+    fc.freeDrawingBrush.width=2;
+    fc.defaultCursor='crosshair';
+  }
+  if(tool==='highlighter'){
+    fc.isDrawingMode=true;
+    fc.freeDrawingBrush=new fabric.PencilBrush(fc);
+    fc.freeDrawingBrush.color='rgba(255,255,0,0.35)';
+    fc.freeDrawingBrush.width=18;
+    fc.defaultCursor='crosshair';
+  }
+  if(tool==='text'){
+    fc.defaultCursor='text';
+    fc.hoverCursor='text';
+  }
+  if(tool==='cloud'){
+    fc.defaultCursor='crosshair';
+    fc.hoverCursor='crosshair';
+  }
+  if(tool==='eraser'){
+    fc.defaultCursor='not-allowed';
+    fc.hoverCursor='pointer';
+    fc.forEachObject(o=>{o.selectable=false;o.evented=true;});
+  }
+  fc.renderAll();
+}
+
+function setTool(tool){
+  currentTool=tool;
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>{
+    b.classList.toggle('active',b.dataset.tool===tool);
+  });
+  pageCanvases.forEach(pc=>applyToolToFabric(pc.fabricInstance,tool));
+}
+
+// ─── REVISION CLOUD ──────────────────────────────────────────────
+function insertCloud(fc, cx, cy){
+  // Cloud as a bumpy rounded rectangle path
+  const w=160,h=90;
+  const x=cx-w/2,y=cy-h/2;
+  const bumpR=12;
+  let path='M '+(x+bumpR)+' '+y;
+  // Top edge
+  for(let px=x+bumpR;px<x+w-bumpR;px+=bumpR*2){
+    path+=' A '+bumpR+' '+bumpR+' 0 0 1 '+Math.min(px+bumpR*2,x+w-bumpR)+' '+y;
+  }
+  // Right edge
+  for(let py=y;py<y+h-bumpR;py+=bumpR*2){
+    path+=' A '+bumpR+' '+bumpR+' 0 0 1 '+(x+w)+' '+Math.min(py+bumpR*2,y+h);
+  }
+  // Bottom edge
+  for(let px=x+w;px>x+bumpR;px-=bumpR*2){
+    path+=' A '+bumpR+' '+bumpR+' 0 0 1 '+Math.max(px-bumpR*2,x)+' '+(y+h);
+  }
+  // Left edge
+  for(let py=y+h;py>y+bumpR;py-=bumpR*2){
+    path+=' A '+bumpR+' '+bumpR+' 0 0 1 '+x+' '+Math.max(py-bumpR*2,y);
+  }
+  path+=' Z';
+
+  const cloud=new fabric.Path(path,{
+    fill:'rgba(255,0,0,0.06)',
+    stroke:'#e60000',
+    strokeWidth:2,
+    selectable:true,
+    evented:true,
+  });
+
+  // Attach a text label
+  const label=new fabric.IText('REV',{
+    left:cx-14,top:cy-8,
+    fontSize:14,fill:'#e60000',fontFamily:'Arial',fontWeight:'bold',
+    editable:true,
+  });
+
+  const group=new fabric.Group([cloud,label],{
+    left:cx-w/2-10,top:cy-h/2-10,
+    selectable:true,
+  });
+
+  // Ungroup immediately so the text is editable independently
+  fc.add(cloud);
+  fc.add(label);
+  fc.setActiveObject(label);
+  label.enterEditing();
+  fc.renderAll();
+}
+
+// ─── CLEANUP ─────────────────────────────────────────────────────
+function destroyFabricInstances(){
+  pageCanvases.forEach(pc=>{
+    try{pc.fabricInstance.dispose();}catch{}
+  });
+  pageCanvases=[];
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAN WITH SPACEBAR + DRAG
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&!e.repeat&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault();
+    spaceDown=true;
+    document.getElementById('scrollView').style.cursor='grab';
+    // Disable fabric interaction while panning
+    pageCanvases.forEach(pc=>{pc.fabricInstance.skipTargetFind=true;});
+  }
+});
+document.addEventListener('keyup',e=>{
+  if(e.code==='Space'){
+    spaceDown=false;
+    isPanning=false;
+    document.getElementById('scrollView').style.cursor='';
+    pageCanvases.forEach(pc=>{pc.fabricInstance.skipTargetFind=false;});
+  }
+});
+
+const scrollViewEl=()=>document.getElementById('scrollView');
+
+document.addEventListener('mousedown',e=>{
+  if(spaceDown){
+    isPanning=true;
+    const sv=scrollViewEl();
+    panStart={x:e.clientX,y:e.clientY,scrollX:sv.scrollLeft,scrollY:sv.scrollTop};
+    sv.style.cursor='grabbing';
+    e.preventDefault();
+  }
+});
+document.addEventListener('mousemove',e=>{
+  if(isPanning){
+    const sv=scrollViewEl();
+    sv.scrollLeft=panStart.scrollX-(e.clientX-panStart.x);
+    sv.scrollTop=panStart.scrollY-(e.clientY-panStart.y);
+  }
+});
+document.addEventListener('mouseup',()=>{
+  if(isPanning){
+    isPanning=false;
+    const sv=scrollViewEl();
+    sv.style.cursor=spaceDown?'grab':'';
+  }
+});
+
+// Mouse wheel zoom
+document.getElementById('scrollView')?.addEventListener('wheel',e=>{
+  if(e.ctrlKey||e.metaKey){
+    e.preventDefault();
+    const delta=e.deltaY>0?-0.15:0.15;
+    changeZoom(delta);
+  }
+},{passive:false});
+
+// ═══════════════════════════════════════════════════════════════════
+// RENAMING ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+// Chip click handlers
+document.querySelectorAll('.chip[data-f]').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const field=chip.dataset.f;
+    const value=chip.dataset.v;
+    // Toggle
+    if(tax[field]===value){
+      tax[field]='';
+      chip.classList.remove('active');
+    } else {
+      // Deactivate siblings
+      chip.parentElement.querySelectorAll('.chip[data-f="'+field+'"]').forEach(c=>c.classList.remove('active'));
+      tax[field]=value;
+      chip.classList.add('active');
+    }
+    updateRenamePreview();
+  });
+});
+
+function setToday(){
+  const d=new Date();
+  const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  document.getElementById('taxDate').value=iso;
+  tax.date=iso.replace(/-/g,'');
+  updateRenamePreview();
+}
+
+document.getElementById('taxDate').addEventListener('change',e=>{
+  tax.date=e.target.value?e.target.value.replace(/-/g,''):'';
+  updateRenamePreview();
+});
+
+function onTaxInput(){
+  tax.client=document.getElementById('taxClient').value.trim().toUpperCase();
+  tax.job=document.getElementById('taxJob').value.trim().toUpperCase();
+  tax.desc=document.getElementById('taxDesc').value.trim().replace(/\s+/g,'-');
+  updateRenamePreview();
+}
+
+function buildNewName(){
+  if(!activeFileEntry)return'';
+  const ext=fext(activeFileEntry.name);
+  const segs=[tax.class,tax.rev,tax.ver,tax.spec,tax.date,tax.client,tax.job,tax.desc].filter(s=>s);
+  if(segs.length===0)return'';
+  const base=segs.join('-');
+  return ext?base+'.'+ext:base;
+}
+
+function updateRenamePreview(){
+  const name=buildNewName();
+  const el=document.getElementById('renamePreview');
+  const btn=document.getElementById('btnRename');
+  if(name){
+    el.textContent=name;
+    el.style.color='';
+    btn.disabled=false;
+  } else {
+    el.textContent=activeFileEntry?'(select taxonomy segments)':'—';
+    el.style.color='var(--text-dim)';
+    btn.disabled=true;
+  }
+}
+
+async function applyRename(){
+  if(!activeFileEntry)return toast('No file selected','error');
+  const newName=buildNewName();
+  if(!newName)return toast('Build a name first','error');
+  if(newName===activeFileEntry.name)return toast('Name unchanged','error');
+
+  const oldName=activeFileEntry.name;
+  const parent=activeFileEntry.parentHandle;
+
+  try{
+    // Read → Write new → Delete old
+    const file=await activeFileEntry.handle.getFile();
+    const buf=await file.arrayBuffer();
+    const newHandle=await parent.getFileHandle(newName,{create:true});
+    const wr=await newHandle.createWritable();
+    await wr.write(buf);
+    await wr.close();
+    await parent.removeEntry(oldName);
+
+    // Save predictive memory
+    if(tax.client)addKnown(knownClients,STORE_CLIENTS,tax.client);
+    if(tax.job)addKnown(knownJobs,STORE_JOBS,tax.job);
+
+    // History
+    renameHistory.unshift({old:oldName,new:newName});
+    if(renameHistory.length>30)renameHistory.length=30;
+    renderHistory();
+
+    toast(oldName+' → '+newName,'success',4000);
+
+    // Refresh
+    await scanFiles();
+
+    // Find and select the renamed file
+    const renamed=allFiles.find(f=>f.name===newName);
+    if(renamed){
+      const row=document.querySelector('.file-item[data-path="'+CSS.escape(renamed.path)+'"]');
+      if(row)loadFile(renamed,row);
+    }
+  }catch(e){
+    toast('Rename failed: '+e.message,'error');
+  }
+}
+
+function clearTaxonomy(){
+  Object.keys(tax).forEach(k=>tax[k]='');
+  document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
+  document.getElementById('taxDate').value='';
+  document.getElementById('taxClient').value='';
+  document.getElementById('taxJob').value='';
+  document.getElementById('taxDesc').value='';
+  updateRenamePreview();
+}
+
+function renderHistory(){
+  const el=document.getElementById('renameHistory');
+  el.innerHTML='';
+  renameHistory.forEach(h=>{
+    const d=document.createElement('div');
+    d.className='history-item';
+    d.innerHTML=`<span class="h-old" title="${esc(h.old)}">${esc(h.old)}</span>
+      <span style="color:var(--text-dim);flex-shrink:0">→</span>
+      <span class="h-new" title="${esc(h.new)}">${esc(h.new)}</span>`;
+    el.appendChild(d);
+  });
+}
+
+// ─── THUMBNAIL SCROLL TRACKING ───────────────────────────────────
+(function(){
+  let ticking=false;
+  document.getElementById('scrollView')?.addEventListener('scroll',function(){
+    if(!ticking){
+      window.requestAnimationFrame(()=>{
+        updateActiveThumb();
+        ticking=false;
+      });
+      ticking=true;
+    }
+  });
+})();
+
+function updateActiveThumb(){
+  const sv=document.getElementById('scrollView');
+  if(!sv||pageCanvases.length===0)return;
+  const svRect=sv.getBoundingClientRect();
+  const center=svRect.top+svRect.height/3;
+  let closest=1;
+  let closestDist=Infinity;
+  pageCanvases.forEach(pc=>{
+    const el=document.getElementById('page-'+pc.pageNum);
+    if(!el)return;
+    const rect=el.getBoundingClientRect();
+    const dist=Math.abs(rect.top-center);
+    if(dist<closestDist){closestDist=dist;closest=pc.pageNum;}
+  });
+  document.querySelectorAll('.thumb-item').forEach(t=>{
+    t.classList.toggle('active',parseInt(t.dataset.page)===closest);
+  });
+}
+
+// ─── INIT CHECK ──────────────────────────────────────────────────
+if(!('showDirectoryPicker' in window)){
+  toast('File System Access API not available. Use Chrome 86+ or Edge 86+.','error',8000);
+}
+</script>
 </body>
 </html>
