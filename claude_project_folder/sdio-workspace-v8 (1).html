@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDIO Workspace v8.1</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0f1115; --surface: #161b22; --border: #30363d;
+            --accent: #ff6b35; --text-main: #e6edf3; --text-muted: #8b949e;
+            --input-bg: #0d1117; --success: #238636; --danger: #da3633;
+            --highlight: #1f6feb; --folder: #d29922; --archive: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Inter, sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; margin: 0; display: flex; overflow: hidden; }
+        .app-grid { display: grid; grid-template-columns: 260px auto 1fr 350px; width: 100%; height: 100vh; }
+
+        /* COL 1: EXPLORER */
+        .col-explorer { background: #0d1117; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 2; }
+        .explorer-header { padding: 8px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+        .path-bar { font-family: monospace; font-size: 10px; color: var(--text-muted); background: #000; padding: 4px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-row { display: flex; gap: 4px; }
+        .folder-btn { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); padding: 6px; font-size: 11px; border-radius: 4px; cursor: pointer; flex: 1; text-align: center; }
+        .folder-btn:hover { border-color: var(--accent); }
+        .folder-btn.primary { background: var(--highlight); color: white; border: none; }
+        .search-bar { position: relative; }
+        .search-bar input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 6px 6px 6px 26px; border-radius: 4px; font-size: 11px; outline: none; box-sizing: border-box; }
+        .search-bar input:focus { border-color: var(--accent); }
+        .search-bar::before { content: '🔍'; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none; }
+        .search-bar .clear-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 2px 4px; display: none; }
+        .search-bar .clear-btn.show { display: block; }
+        .file-list { flex-grow: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 1px; }
+        .file-item { padding: 5px 8px; font-size: 11px; color: var(--text-muted); cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; }
+        .file-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); border-color: #30363d; }
+        .file-item.active { background: rgba(31, 111, 235, 0.2); border-color: var(--highlight); color: white; }
+        .file-info { display: flex; align-items: center; gap: 6px; overflow: hidden; flex: 1; }
+        .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-item.folder { color: var(--folder); font-weight: bold; }
+        .file-item.done { color: var(--success); }
+        .file-actions { display: none; gap: 3px; }
+        .file-item:hover .file-actions { display: flex; }
+        .action-btn { background: none; border: none; padding: 3px; border-radius: 3px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .btn-archive:hover { color: var(--archive); }
+        .btn-delete:hover { color: var(--danger); }
+        .file-badge { font-size: 8px; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; font-weight: bold; margin-left: 4px; flex-shrink: 0; }
+        .badge-pdf { background: rgba(218,54,51,0.2); color: #f87171; }
+        .badge-img { background: rgba(59,130,246,0.2); color: #93c5fd; }
+        .badge-doc { background: rgba(37,99,235,0.2); color: #60a5fa; }
+        .badge-xls { background: rgba(34,197,94,0.2); color: #86efac; }
+
+        /* COL 2: PAGE SIDEBAR */
+        .col-pages { background: #0a0d12; border-right: 1px solid var(--border); width: 0; overflow: hidden; transition: width 0.2s; display: flex; flex-direction: column; }
+        .col-pages.open { width: 130px; }
+        .pages-header { padding: 6px 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .pages-header span { font-size: 10px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
+        .page-list { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 3px; }
+        .page-thumb { border: 2px solid transparent; border-radius: 4px; cursor: pointer; position: relative; background: #111; overflow: hidden; }
+        .page-thumb:hover { border-color: var(--border); }
+        .page-thumb.current { border-color: var(--highlight); }
+        .page-thumb.selected { border-color: var(--accent); background: rgba(255,107,53,0.1); }
+        .page-thumb canvas { width: 100%; display: block; }
+        .page-num-label { position: absolute; bottom: 2px; right: 4px; font-size: 9px; font-weight: bold; color: white; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 3px; }
+        .page-thumb .select-check { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; }
+        .page-thumb.selected .select-check { background: var(--accent); border-color: var(--accent); color: white; }
+
+        /* COL 3: PREVIEW */
+        .col-preview { background: #090c10; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        #scrollView { flex: 1; overflow-y: auto; overflow-x: hidden; display: none; padding: 10px; scroll-behavior: smooth; }
+        #scrollView .pdf-page-wrap { margin: 0 auto 12px; position: relative; }
+        #scrollView .pdf-page-wrap canvas { display: block; margin: 0 auto; box-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+        #scrollView .page-marker { position: absolute; top: 4px; right: 8px; font-size: 10px; color: rgba(255,255,255,0.4); font-family: monospace; background: rgba(0,0,0,0.5); padding: 1px 6px; border-radius: 3px; z-index: 5; }
+        #singleView { flex: 1; overflow: auto; display: none; align-items: center; justify-content: center; }
+        #singleView img { max-width: 95%; max-height: 95%; object-fit: contain; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+        #singleView .doc-info { text-align: center; padding: 40px; color: var(--text-muted); }
+        #singleView .doc-info .doc-icon { font-size: 60px; margin-bottom: 15px; }
+        #singleView .doc-info .doc-name { font-size: 14px; color: var(--text-main); margin-bottom: 5px; }
+        #placeholder { flex:1; display:flex; align-items:center; justify-content:center; opacity:0.3; font-size:40px; }
+
+        .preview-toolbar { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--border); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 30px; display: none; gap: 10px; align-items: center; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .preview-toolbar.show { display: flex; }
+        .icon-btn { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 15px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.15s; }
+        .icon-btn:hover { background: rgba(255,255,255,0.15); }
+        .tb-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.2); }
+        .tb-info { font-size: 11px; font-family: monospace; color: rgba(255,255,255,0.7); white-space: nowrap; }
+
+        .extract-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--accent); padding: 8px 14px; border-radius: 8px; display: none; gap: 8px; align-items: center; z-index: 100; box-shadow: 0 4px 20px rgba(255,107,53,0.2); }
+        .extract-bar.show { display: flex; }
+        .extract-bar label { font-size: 10px; color: var(--accent); margin: 0; }
+        .extract-bar input { width: 100px; padding: 4px; font-size: 11px; text-align: center; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 4px; font-family: 'Consolas', monospace; }
+        .extract-bar button { padding: 5px 12px; font-size: 10px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
+        .extract-bar .btn-extract { background: var(--accent); color: white; }
+        .extract-bar .btn-extract:hover { background: #e05a2a; }
+        .extract-bar .btn-cancel { background: var(--border); color: var(--text-main); }
+        .extract-bar .sel-count { font-size: 11px; color: var(--accent); font-weight: bold; font-family: monospace; }
+
+        /* COL 4: CONTROLS */
+        .col-controls { background: var(--surface); border-left: 1px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 7px; overflow-y: auto; z-index: 2; }
+        .col-controls h2 { margin: 0; font-size: 13px; color: var(--accent); display:flex; justify-content:space-between; align-items:center; }
+        .control-group { display: flex; flex-direction: column; gap: 2px; }
+        .col-controls label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; }
+        .col-controls input, .col-controls select { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 11px; outline: none; }
+        .col-controls input:focus { border-color: var(--accent); }
+        .section-label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .section-label .edit-hint { font-size: 8px; color: #555; font-weight: normal; text-transform: none; }
+        .quick-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        .q-btn { background: #21262d; border: 1px solid var(--border); color: var(--text-muted); padding: 3px 2px; font-size: 9px; border-radius: 3px; cursor: pointer; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; }
+        .q-btn:hover { background: #30363d; color: #fff; }
+        .recent-grid { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; }
+        .recent-chip { background: rgba(35,134,54,0.15); border: 1px solid rgba(35,134,54,0.3); color: #7ee787; font-size: 9px; padding: 1px 6px; border-radius: 10px; cursor: pointer; white-space: nowrap; }
+        .recent-chip:hover { background: rgba(35,134,54,0.3); color: #fff; }
+        .predict-box { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+        .chip { background: rgba(31, 111, 235, 0.2); border: 1px solid var(--highlight); color: #a5d6ff; font-size: 9px; padding: 1px 7px; border-radius: 10px; cursor: pointer; }
+        .chip:hover { background: var(--highlight); color: white; }
+        .output-box { background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 2px; display: flex; align-items: center; margin-top: 2px; }
+        #finalName { background: transparent; border: none; color: var(--accent); font-size: 11px; width: 100%; padding: 4px; font-weight: bold; font-family: 'Consolas', monospace; }
+        .format-legend { font-family: 'Consolas', monospace; font-size: 8px; color: #444; padding: 2px 0; }
+        .format-legend span { color: var(--accent); }
+        .main-save-btn { background: var(--danger); color: white; border: none; padding: 10px; font-size: 11px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; display:flex; flex-direction: column; align-items: center; line-height: 1.2; margin-top: auto; }
+        .main-save-btn:hover { background: #b52a27; }
+        .main-save-btn:disabled { background: var(--border); opacity: 0.5; cursor: not-allowed; }
+        .row { display: flex; gap: 5px; }
+        .flex-1 { flex: 1; }
+
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; width: 300px; }
+        .modal-box h3 { margin: 0 0 10px; font-size: 13px; color: var(--accent); }
+        .modal-box input { width: 100%; margin-bottom: 6px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 7px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 12px; box-sizing: border-box; }
+        .modal-box .btn-row { display: flex; gap: 6px; margin-top: 8px; }
+        .modal-box button { flex:1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .modal-box .btn-save { background: var(--highlight); color: white; }
+        .modal-box .btn-cancel { background: var(--border); color: var(--text-main); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-grid">
+    <div class="col-explorer">
+        <div class="explorer-header">
+            <div class="nav-row">
+                <button class="folder-btn primary" onclick="openRootFolder()">📂 Open Project</button>
+                <button class="folder-btn" onclick="goUpDir()" id="upBtn" disabled>⬆ Up</button>
+            </div>
+            <div class="path-bar" id="pathDisplay">/</div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search files..." oninput="filterFiles()">
+                <button class="clear-btn" id="clearSearch" onclick="clearSearch()">×</button>
+            </div>
+        </div>
+        <div class="file-list" id="fileList"><div style="padding:20px; text-align:center; color:var(--text-muted); font-size:11px;">Select Project Folder</div></div>
+    </div>
+
+    <div class="col-pages" id="colPages">
+        <div class="pages-header">
+            <span>Pages</span>
+            <button class="icon-btn" onclick="toggleSelectMode()" id="selectModeBtn" title="Select pages" style="font-size:12px; width:22px; height:22px;">☐</button>
+        </div>
+        <div class="page-list" id="pageList"></div>
+    </div>
+
+    <div class="col-preview">
+        <div id="placeholder">👁️</div>
+        <div id="scrollView"></div>
+        <div id="singleView"></div>
+        <div class="extract-bar" id="extractBar">
+            <label>Pages:</label>
+            <input type="text" id="extractRange" placeholder="1-10, 15, 20-25">
+            <span class="sel-count" id="selCount">0 sel</span>
+            <button class="btn-extract" onclick="extractSelectedPages()">✂ Extract</button>
+            <button class="btn-cancel" onclick="cancelExtract()">Cancel</button>
+        </div>
+        <div class="preview-toolbar" id="previewToolbar">
+            <button class="icon-btn" onclick="togglePageSidebar()" title="Pages panel">📑</button>
+            <div class="tb-sep"></div>
+            <button class="icon-btn" onclick="goToPage(-1)">◀</button>
+            <span class="tb-info"><span id="tbPageNum">1</span>/<span id="tbPageCount">-</span></span>
+            <button class="icon-btn" onclick="goToPage(1)">▶</button>
+            <div class="tb-sep"></div>
+            <input type="number" id="gotoInput" style="width:45px; padding:3px; font-size:11px; text-align:center; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:white; border-radius:4px;" placeholder="#" min="1">
+            <button class="icon-btn" onclick="jumpToPage()" title="Go to page" style="font-size:12px;">↵</button>
+            <div class="tb-sep"></div>
+            <button class="icon-btn" onclick="startExtractMode()" title="Extract pages" style="color:#4ade80; font-size:14px;">✂️</button>
+        </div>
+    </div>
+
+    <div class="col-controls">
+        <h2>SDIO v8.1 <span style="font-size:9px; color:var(--text-muted);">Taxonomy v2.0</span></h2>
+        <div class="format-legend"><span>[XXX]</span>-<span>[RXX]</span>-<span>[VXX]</span>-<span>[XXXXXX]</span>-<span>[YYMMDD]</span>-<span>[AAAYYJJ]</span>-<span>[NOTES]</span></div>
+        <div class="control-group"><div class="section-label">Recently Used <span class="edit-hint" id="recentCount"></span></div><div class="recent-grid" id="recentGrid"></div></div>
+        <div class="control-group"><div class="section-label">Quick Select <span class="edit-hint">right-click to edit</span></div><div class="quick-grid" id="quickGrid"></div></div>
+        <div class="control-group"><label>Classification Code</label><input list="codeList" id="classCode" placeholder="Search codes..." onfocus="this.value=''"><datalist id="codeList"></datalist></div>
+        <div class="row">
+            <div class="control-group flex-1"><label>Revision</label><select id="revCode"><option>R00</option><option>R01</option><option>R02</option><option>R03</option><option>R04</option><option>R05</option><option>R06</option><option>R07</option><option>R08</option><option>R09</option></select></div>
+            <div class="control-group flex-1"><label>Version</label><select id="verCode"><option>V01</option><option>V02</option><option>V03</option><option>V04</option><option>V05</option><option>V06</option><option>V07</option><option>V08</option><option>V09</option><option>V10</option></select></div>
+        </div>
+        <div class="control-group"><label>CSI MasterFormat Spec</label><input list="specList" id="specCode" placeholder="Search spec codes..."><datalist id="specList"></datalist></div>
+        <div class="control-group"><label>Date Received (YYMMDD)</label><input type="date" id="dateReceived"></div>
+        <div class="row">
+            <div class="control-group flex-1"><label>Client (3)</label><input type="text" id="clientCode" maxlength="3" placeholder="AAA" oninput="this.value=this.value.toUpperCase()"></div>
+            <div class="control-group flex-1"><label>Year (2)</label><input type="text" id="jobYear" maxlength="2" placeholder="YY"></div>
+            <div class="control-group flex-1"><label>Job # (2)</label><input type="text" id="jobNum" maxlength="2" placeholder="JJ"></div>
+        </div>
+        <div class="control-group"><label>User Notes</label><input type="text" id="descText" placeholder="e.g. StumpNeck-Assembly-Letter" oninput="this.value=this.value.replace(/\s+/g,'-')"><div class="predict-box" id="predictionBox"></div></div>
+        <div class="control-group"><label>New Filename</label><div class="output-box"><input type="text" id="finalName" readonly></div></div>
+        <button class="main-save-btn" id="dlBtn" disabled onclick="renameAndDelete()">RENAME & DELETE OLD</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editOverlay">
+    <div class="modal-box">
+        <h3>Edit Quick Select</h3>
+        <label style="font-size:9px;color:var(--text-muted);">Code (3 digits)</label>
+        <input type="text" id="editCode" maxlength="3" placeholder="301">
+        <label style="font-size:9px;color:var(--text-muted);">Label</label>
+        <input type="text" id="editLabel" maxlength="12" placeholder="Assy Ltr">
+        <div class="btn-row"><button class="btn-cancel" onclick="closeEditModal()">Cancel</button><button class="btn-save" onclick="saveEditModal()">Save</button></div>
+    </div>
+</div>
+
+<script>
+const taxonomy=[{c:"000",d:"General Admin"},{c:"001",d:"Transmittals"},{c:"002",d:"Meeting Minutes"},{c:"005",d:"Insurance"},{c:"010",d:"Permits"},{c:"020",d:"Invoices (AR)"},{c:"030",d:"Bills (AP)"},{c:"040",d:"Payroll"},{c:"050",d:"Legal"},{c:"100",d:"Full Contract"},{c:"101",d:"Scope of Work"},{c:"102",d:"Full Spec Book"},{c:"103",d:"Spec Sections"},{c:"104",d:"Change Orders"},{c:"105",d:"Schedule"},{c:"110",d:"Safety Plan"},{c:"111",d:"Safety Manual"},{c:"200",d:"Full Project Set"},{c:"201",d:"Taper Plans"},{c:"202",d:"Mfr Details"},{c:"203",d:"Takeoff"},{c:"204",d:"Sketches"},{c:"205",d:"Photos"},{c:"206",d:"Direction"},{c:"207",d:"Prev Shop Dwgs"},{c:"210",d:"Full Arch Set"},{c:"211",d:"Arch Plans"},{c:"212",d:"Arch RCP"},{c:"213",d:"Arch Elevations"},{c:"214",d:"Arch Sections"},{c:"215",d:"Arch Details"},{c:"216",d:"Arch Schedules"},{c:"217",d:"Arch Interiors"},{c:"218",d:"Arch Vert Circ"},{c:"220",d:"Full Civil Set"},{c:"221",d:"Civil Site"},{c:"222",d:"Civil Grading"},{c:"223",d:"Civil Utilities"},{c:"224",d:"Civil Details"},{c:"225",d:"Civil Geotech"},{c:"230",d:"Full Struct Set"},{c:"231",d:"Struct Fdn"},{c:"232",d:"Struct Framing"},{c:"233",d:"Struct Elev"},{c:"234",d:"Struct Sect"},{c:"235",d:"Struct Details"},{c:"240",d:"Full Fire Set"},{c:"241",d:"Fire Sprinkler"},{c:"242",d:"Fire Alarm"},{c:"243",d:"Fire Details"},{c:"250",d:"Full Landsc Set"},{c:"251",d:"Landsc Plans"},{c:"252",d:"Landsc Details"},{c:"253",d:"Landsc GreenRf"},{c:"260",d:"Full Plumb Set"},{c:"261",d:"Plumb Plans"},{c:"262",d:"Plumb Roof"},{c:"263",d:"Plumb Risers"},{c:"264",d:"Plumb Details"},{c:"270",d:"Full Mech Set"},{c:"271",d:"Mech HVAC"},{c:"272",d:"Mech Piping"},{c:"273",d:"Mech Roof"},{c:"274",d:"Mech Details"},{c:"280",d:"Full Elec Set"},{c:"281",d:"Elec Power"},{c:"282",d:"Elec Lighting"},{c:"283",d:"Elec Low Volt"},{c:"284",d:"Elec Roof"},{c:"285",d:"Elec Details"},{c:"290",d:"Internal Inputs"},{c:"291",d:"Ref Shop Dwgs"},{c:"292",d:"3rd Pty Full Set"},{c:"293",d:"3rd Pty Plan"},{c:"294",d:"3rd Pty Document"},{c:"300",d:"Full Submittal Log"},{c:"301",d:"Assembly Letter"},{c:"302",d:"Product Data"},{c:"303",d:"Mfr Std Details"},{c:"304",d:"SDS Sheets"},{c:"305",d:"Sample Track"},{c:"306",d:"Returned Submit"},{c:"307",d:"Client Markups"},{c:"308",d:"Inhouse Markups"},{c:"309",d:"GC/Arch Markups"},{c:"310",d:"Warranty Mfr"},{c:"311",d:"Warranty GC"},{c:"400",d:"Full Field Log"},{c:"401",d:"Daily Reports"},{c:"402",d:"Safety Reports"},{c:"403",d:"Incident Reports"},{c:"410",d:"Photos Pre"},{c:"411",d:"Photos Progress"},{c:"412",d:"Photos Drone"},{c:"413",d:"Photos Final"},{c:"420",d:"Surveys"},{c:"421",d:"Redlines"},{c:"500",d:"Full Shop Set"},{c:"501",d:"Shop Dwg PDF"},{c:"502",d:"Shop Dwg DWG"},{c:"503",d:"As-Builts"},{c:"504",d:"Closeout Pkg"},{c:"550",d:"Proposal"},{c:"600",d:"OCR Text"},{c:"601",d:"Geometry DXF"},{c:"602",d:"Layer List"},{c:"603",d:"Block List"},{c:"604",d:"Stats"},{c:"700",d:"Training Pairs"},{c:"701",d:"Validation Set"},{c:"702",d:"Model Weights"}];
+
+const specCodes=[{v:"070150",l:"07 01 50 - Maint Membrane Roofing"},{v:"07015023",l:"07 01 50.23 - Roof Removal"},{v:"07015081",l:"07 01 50.81 - Roof Replacement"},{v:"070510",l:"07 05 10 - Rainscreen Drainage Mat"},{v:"070543",l:"07 05 43 - Cladding Support"},{v:"071100",l:"07 11 00 - Dampproofing"},{v:"071113",l:"07 11 13 - Bituminous Dampproofing"},{v:"071116",l:"07 11 16 - Cementitious Dampproofing"},{v:"071200",l:"07 12 00 - Built-Up Bituminous WP"},{v:"071300",l:"07 13 00 - Sheet Waterproofing"},{v:"071313",l:"07 13 13 - Bituminous Sheet WP"},{v:"071326",l:"07 13 26 - Self-Adhering Sheet WP"},{v:"071352",l:"07 13 52 - Mod Bit Sheet WP"},{v:"071353",l:"07 13 53 - Elastomeric Sheet WP"},{v:"071354",l:"07 13 54 - Thermoplastic Sheet WP"},{v:"071400",l:"07 14 00 - Fluid-Applied WP"},{v:"071413",l:"07 14 13 - Hot Rubberized Asphalt WP"},{v:"071416",l:"07 14 16 - Cold Fluid Applied WP"},{v:"071600",l:"07 16 00 - Cementitious/Reactive WP"},{v:"071616",l:"07 16 16 - Crystalline WP"},{v:"071700",l:"07 17 00 - Bentonite WP"},{v:"071800",l:"07 18 00 - Traffic Coatings"},{v:"071813",l:"07 18 13 - Pedestrian Traffic"},{v:"071816",l:"07 18 16 - Vehicular Traffic"},{v:"071900",l:"07 19 00 - Water Repellents"},{v:"072100",l:"07 21 00 - Thermal Insulation"},{v:"072113",l:"07 21 13 - Board Insulation"},{v:"072116",l:"07 21 16 - Blanket Insulation"},{v:"072119",l:"07 21 19 - Foamed-In-Place"},{v:"072129",l:"07 21 29 - Sprayed Insulation"},{v:"072200",l:"07 22 00 - Roof & Deck Insulation"},{v:"072216",l:"07 22 16 - Roof Board Insulation"},{v:"072217",l:"07 22 17 - Low Slope Cover Board"},{v:"072400",l:"07 24 00 - EIFS"},{v:"072500",l:"07 25 00 - Weather Barriers"},{v:"072600",l:"07 26 00 - Vapor Retarders"},{v:"072613",l:"07 26 13 - Above-Grade Vapor Retarders"},{v:"072700",l:"07 27 00 - Air & Moisture Barriers"},{v:"072716",l:"07 27 16 - Sheet Metal Air Barriers"},{v:"072719",l:"07 27 19 - Plastic Sheet Air Barriers"},{v:"072723",l:"07 27 23 - Board Air Barriers"},{v:"072726",l:"07 27 26 - Fluid-Applied Air Barriers"},{v:"072736",l:"07 27 36 - Sprayed Foam Air Barrier"},{v:"072800",l:"07 28 00 - Underlayments"},{v:"073113",l:"07 31 13 - Asphalt Shingles"},{v:"073126",l:"07 31 26 - Slate Shingles"},{v:"073129",l:"07 31 29 - Wood Shingles/Shakes"},{v:"073200",l:"07 32 00 - Roof Tiles"},{v:"073300",l:"07 33 00 - Natural Roof Coverings"},{v:"074113",l:"07 41 13 - Metal Roof Panels"},{v:"074213",l:"07 42 13 - Metal Wall Panels"},{v:"074293",l:"07 42 93 - Soffit Panels"},{v:"074400",l:"07 44 00 - Faced Panels"},{v:"074646",l:"07 46 46 - Fiber Cement Siding"},{v:"075100",l:"07 51 00 - Built-Up Bituminous Roofing"},{v:"075113",l:"07 51 13 - Built-Up Asphalt Roofing"},{v:"075200",l:"07 52 00 - Mod Bit Membrane Roofing"},{v:"075300",l:"07 53 00 - Elastomeric Membrane (EPDM)"},{v:"075323",l:"07 53 23 - EPDM Roofing"},{v:"075400",l:"07 54 00 - Thermoplastic Membrane"},{v:"075416",l:"07 54 16 - KEE Roofing"},{v:"075419",l:"07 54 19 - PVC Roofing"},{v:"075423",l:"07 54 23 - TPO Roofing"},{v:"075500",l:"07 55 00 - Protected Membrane Roofing"},{v:"075563",l:"07 55 63 - Vegetated PMR"},{v:"075564",l:"07 55 64 - Green Roof Components"},{v:"075600",l:"07 56 00 - Fluid-Applied Roofing"},{v:"075700",l:"07 57 00 - Coated Foamed Roofing"},{v:"076113",l:"07 61 13 - Standing Seam Metal"},{v:"076200",l:"07 62 00 - Sheet Metal Flashing/Trim"},{v:"076213",l:"07 62 13 - Fabricated Copings"},{v:"076219",l:"07 62 19 - Gravel Stops & Fasciae"},{v:"076223",l:"07 62 23 - Gutters & Downspouts"},{v:"076229",l:"07 62 29 - Roof Expansion Joints"},{v:"076500",l:"07 65 00 - Flexible Flashing"},{v:"076526",l:"07 65 26 - Self-Adhering Flashing"},{v:"077113",l:"07 71 13 - Manufactured Copings"},{v:"077116",l:"07 71 16 - Counterflashing Systems"},{v:"077126",l:"07 71 26 - Reglets"},{v:"077213",l:"07 72 13 - Manufactured Curbs"},{v:"077223",l:"07 72 23 - Relief Vents"},{v:"077230",l:"07 72 30 - Rooftop Pipe Support"},{v:"077233",l:"07 72 33 - Roof Hatches"},{v:"077243",l:"07 72 43 - Roof Walk Boards"},{v:"077246",l:"07 72 46 - Roof Walkways"},{v:"077253",l:"07 72 53 - Snow Guards"},{v:"077273",l:"07 72 73 - Vegetated Roof Systems"},{v:"077600",l:"07 76 00 - Roof Pavers"},{v:"077700",l:"07 77 00 - Wall Specialties"},{v:"078100",l:"07 81 00 - Applied Fireproofing"},{v:"078413",l:"07 84 13 - Penetration Firestopping"},{v:"078443",l:"07 84 43 - Joint Firestopping"},{v:"078453",l:"07 84 53 - Perimeter Firestopping"},{v:"079123",l:"07 91 23 - Backer Rods"},{v:"079200",l:"07 92 00 - Joint Sealants"},{v:"079213",l:"07 92 13 - Elastomeric Sealants"},{v:"079513",l:"07 95 13 - Expansion Joint Covers"},{v:"321400",l:"32 14 00 - Pavers"},{v:"329000",l:"32 90 00 - Green Roof"}];
+
+// Populate datalists
+const codeListEl=document.getElementById('codeList');taxonomy.forEach(i=>{const o=document.createElement('option');o.value=i.c;o.label=`${i.c} - ${i.d}`;codeListEl.appendChild(o);});
+const specListEl=document.getElementById('specList');specCodes.forEach(i=>{const o=document.createElement('option');o.value=i.v;o.label=i.l;specListEl.appendChild(o);});
+
+// Quick Select
+const DEFAULT_QUICK=[{code:"301",label:"301 Assy"},{code:"302",label:"302 Data"},{code:"306",label:"306 Ret"},{code:"307",label:"307 Client"},{code:"309",label:"309 GC/Mk"},{code:"210",label:"210 Set"},{code:"211",label:"211 Plan"},{code:"215",label:"215 Dets"},{code:"103",label:"103 Spec"},{code:"000",label:"000 Admin"}];
+let quickButtons=JSON.parse(localStorage.getItem('sdio_quick')||'null')||[...DEFAULT_QUICK];let editingIndex=-1;
+function renderQuickGrid(){const g=document.getElementById('quickGrid');g.innerHTML='';quickButtons.forEach((b,i)=>{const d=document.createElement('div');d.className='q-btn';d.textContent=b.label;d.onclick=()=>setQuick(b.code);d.oncontextmenu=e=>{e.preventDefault();openEditModal(i);};g.appendChild(d);});}renderQuickGrid();
+function openEditModal(i){editingIndex=i;document.getElementById('editCode').value=quickButtons[i].code;document.getElementById('editLabel').value=quickButtons[i].label;document.getElementById('editOverlay').classList.add('show');document.getElementById('editCode').focus();}
+function closeEditModal(){document.getElementById('editOverlay').classList.remove('show');editingIndex=-1;}
+function saveEditModal(){if(editingIndex<0)return;const c=document.getElementById('editCode').value.trim(),l=document.getElementById('editLabel').value.trim();if(c&&l){quickButtons[editingIndex]={code:c,label:l};localStorage.setItem('sdio_quick',JSON.stringify(quickButtons));renderQuickGrid();}closeEditModal();}
+document.getElementById('editLabel').addEventListener('keydown',e=>{if(e.key==='Enter')saveEditModal();});
+document.getElementById('editCode').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('editLabel').focus();});
+
+// Recent
+const MAX_RECENT=8;let recentCodes=JSON.parse(localStorage.getItem('sdio_recent')||'[]');
+function addRecent(c){recentCodes=recentCodes.filter(x=>x!==c);recentCodes.unshift(c);if(recentCodes.length>MAX_RECENT)recentCodes.pop();localStorage.setItem('sdio_recent',JSON.stringify(recentCodes));renderRecent();}
+function renderRecent(){const g=document.getElementById('recentGrid'),ct=document.getElementById('recentCount');g.innerHTML='';if(!recentCodes.length){ct.textContent='';g.innerHTML='<span style="font-size:9px;color:#333;">None yet</span>';return;}ct.textContent=`${recentCodes.length}/${MAX_RECENT}`;recentCodes.forEach(c=>{const m=taxonomy.find(t=>t.c===c);const ch=document.createElement('div');ch.className='recent-chip';ch.textContent=m?`${c} ${m.d}`:c;ch.onclick=()=>setQuick(c);g.appendChild(ch);});}renderRecent();
+
+// State
+let rootHandle=null,currentDirHandle=null,currentFileHandle=null,currentFileData=null;
+let pdfDoc=null,totalPages=0,currentPage=1,selectMode=false,selectedPages=new Set();
+
+// Input listeners
+['classCode','revCode','verCode','specCode','dateReceived','clientCode','jobYear','jobNum','descText'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updateFilename);el.addEventListener('change',updateFilename);});
+
+// Search
+function filterFiles(){const q=document.getElementById('searchInput').value.toLowerCase();document.getElementById('clearSearch').classList.toggle('show',q.length>0);document.querySelectorAll('#fileList .file-item').forEach(item=>{const n=item.querySelector('.file-name')?.textContent.toLowerCase()||'';item.style.display=(!q||n.includes(q))?'':'none';});}
+function clearSearch(){document.getElementById('searchInput').value='';filterFiles();}
+
+// Folder ops
+async function openRootFolder(){try{rootHandle=await window.showDirectoryPicker();await navigateTo(rootHandle);}catch(e){console.error(e);}}
+async function navigateTo(h){currentDirHandle=h;document.getElementById('pathDisplay').textContent=(h===rootHandle)?rootHandle.name:rootHandle.name+"/"+h.name;document.getElementById('upBtn').disabled=(h===rootHandle);await refreshFileList();}
+async function goUpDir(){await navigateTo(rootHandle);}
+
+function getFileType(name){const ext=name.split('.').pop().toLowerCase();if(ext==='pdf')return'pdf';if(['jpg','jpeg','png','gif','bmp','webp','svg','tif','tiff'].includes(ext))return'img';if(['doc','docx'].includes(ext))return'doc';if(['xls','xlsx','xlsm','csv','tsv'].includes(ext))return'xls';return'other';}
+
+async function refreshFileList(){const listEl=document.getElementById('fileList');listEl.innerHTML="";let entries=[];for await(const entry of currentDirHandle.values())entries.push(entry);entries.sort((a,b)=>(a.kind===b.kind?a.name.localeCompare(b.name):(a.kind==='directory'?-1:1)));
+for(const handle of entries){const div=document.createElement('div');div.className='file-item';const infoDiv=document.createElement('div');infoDiv.className='file-info';const ft=handle.kind==='directory'?'folder':getFileType(handle.name);const icons={folder:'📁',pdf:'📄',img:'🖼️',doc:'📝',xls:'📊',other:'📎'};const badge=(ft!=='folder'&&ft!=='other')?`<span class="file-badge badge-${ft}">${ft}</span>`:'';infoDiv.innerHTML=`${icons[ft]||'📎'} <span class="file-name">${handle.name}</span>${badge}`;
+if(handle.kind==='directory')div.classList.add('folder');if(handle.name.match(/^\d{3}-R\d{2}-V\d{2}-/))div.classList.add('done');
+if(handle.kind==='directory'){div.ondblclick=()=>navigateTo(handle);}else{div.onclick=e=>{if(!e.target.closest('.action-btn'))loadFile(handle,div);};}
+const actDiv=document.createElement('div');actDiv.className='file-actions';if(handle.kind!=='directory'){const bA=document.createElement('button');bA.className='action-btn btn-archive';bA.innerHTML='📦';bA.onclick=e=>{e.stopPropagation();archiveFile(handle);};const bD=document.createElement('button');bD.className='action-btn btn-delete';bD.innerHTML='🗑️';bD.onclick=e=>{e.stopPropagation();deleteFile(handle);};actDiv.appendChild(bA);actDiv.appendChild(bD);}
+div.appendChild(infoDiv);div.appendChild(actDiv);listEl.appendChild(div);}filterFiles();}
+
+async function archiveFile(fh){if(!currentDirHandle)return;const d=new Date();const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;try{const ad=await currentDirHandle.getDirectoryHandle(`Archive - ${ds}`,{create:true});const h=await currentDirHandle.getFileHandle(fh.name);const fd=await h.getFile();const buf=await fd.arrayBuffer();const nfh=await ad.getFileHandle(fh.name,{create:true});const w=await nfh.createWritable();await w.write(buf);await w.close();await currentDirHandle.removeEntry(fh.name);await refreshFileList();if(currentFileHandle&&currentFileHandle.name===fh.name)resetAllViews();}catch(err){alert("Archive error: "+err.message);}}
+async function deleteFile(fh){if(confirm(`Delete "${fh.name}"?`)){try{await currentDirHandle.removeEntry(fh.name);await refreshFileList();if(currentFileHandle&&currentFileHandle.name===fh.name)resetAllViews();}catch(err){alert("Delete error: "+err.message);}}}
+
+function resetAllViews(){document.getElementById('placeholder').style.display='flex';document.getElementById('scrollView').style.display='none';document.getElementById('scrollView').innerHTML='';document.getElementById('singleView').style.display='none';document.getElementById('singleView').innerHTML='';document.getElementById('previewToolbar').classList.remove('show');document.getElementById('extractBar').classList.remove('show');document.getElementById('colPages').classList.remove('open');document.getElementById('pageList').innerHTML='';document.getElementById('dlBtn').disabled=true;document.getElementById('finalName').value='';pdfDoc=null;totalPages=0;currentPage=1;selectedPages.clear();selectMode=false;}
+
+async function loadFile(handle,uiEl){document.querySelectorAll('.file-item').forEach(el=>el.classList.remove('active'));uiEl.classList.add('active');currentFileHandle=handle;currentFileData=await handle.getFile();document.getElementById('dlBtn').disabled=false;generatePredictions(handle.name);document.getElementById('descText').value="";document.getElementById('dateReceived').value=new Date().toISOString().split('T')[0];updateFilename();resetAllViews();document.getElementById('placeholder').style.display='none';const ft=getFileType(handle.name);if(ft==='pdf')await loadPdf();else if(ft==='img')loadImage();else if(ft==='doc'||ft==='xls')loadDocPreview(handle.name,ft);else loadGenericPreview(handle.name);}
+
+// PDF scroll view
+async function loadPdf(){const ab=await currentFileData.arrayBuffer();pdfDoc=await pdfjsLib.getDocument(new Uint8Array(ab)).promise;totalPages=pdfDoc.numPages;currentPage=1;selectedPages.clear();selectMode=false;
+document.getElementById('tbPageCount').textContent=totalPages;document.getElementById('tbPageNum').textContent='1';document.getElementById('gotoInput').max=totalPages;document.getElementById('previewToolbar').classList.add('show');
+const sv=document.getElementById('scrollView');sv.style.display='block';sv.innerHTML='';
+const renderScale=Math.min(1.5,(sv.clientWidth-30)/612);
+for(let i=1;i<=totalPages;i++){const page=await pdfDoc.getPage(i);const vp=page.getViewport({scale:renderScale});const wrap=document.createElement('div');wrap.className='pdf-page-wrap';wrap.id=`page-${i}`;wrap.style.width=vp.width+'px';const marker=document.createElement('div');marker.className='page-marker';marker.textContent=`${i} / ${totalPages}`;const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;canvas.style.width=vp.width+'px';canvas.style.height=vp.height+'px';wrap.appendChild(marker);wrap.appendChild(canvas);sv.appendChild(wrap);const ctx=canvas.getContext('2d');await page.render({canvasContext:ctx,viewport:vp}).promise;}
+setupPageObserver();await buildPageThumbs();document.getElementById('colPages').classList.add('open');}
+
+function setupPageObserver(){const sv=document.getElementById('scrollView');const obs=new IntersectionObserver(entries=>{let best=null;entries.forEach(e=>{if(e.isIntersecting&&(!best||e.intersectionRatio>best.intersectionRatio))best=e;});if(best){const n=parseInt(best.target.id.replace('page-',''));if(n&&n!==currentPage){currentPage=n;document.getElementById('tbPageNum').textContent=n;highlightThumb(n);}}},{root:sv,threshold:[0.3,0.5,0.7]});document.querySelectorAll('.pdf-page-wrap').forEach(el=>obs.observe(el));}
+
+async function buildPageThumbs(){const pl=document.getElementById('pageList');pl.innerHTML='';const ts=0.2;for(let i=1;i<=totalPages;i++){const page=await pdfDoc.getPage(i);const vp=page.getViewport({scale:ts});const td=document.createElement('div');td.className='page-thumb'+(i===1?' current':'');td.dataset.page=i;const ck=document.createElement('div');ck.className='select-check';ck.textContent='✓';const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;const nl=document.createElement('div');nl.className='page-num-label';nl.textContent=i;td.appendChild(ck);td.appendChild(c);td.appendChild(nl);pl.appendChild(td);td.onclick=()=>{if(selectMode)togglePageSelection(i,td);else scrollToPage(i);};page.render({canvasContext:c.getContext('2d'),viewport:vp});}}
+
+function highlightThumb(n){document.querySelectorAll('.page-thumb').forEach(t=>t.classList.remove('current'));const t=document.querySelector(`.page-thumb[data-page="${n}"]`);if(t){t.classList.add('current');t.scrollIntoView({block:'nearest'});}}
+function scrollToPage(n){const el=document.getElementById(`page-${n}`);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});currentPage=n;document.getElementById('tbPageNum').textContent=n;highlightThumb(n);}}
+function goToPage(d){const n=currentPage+d;if(n>=1&&n<=totalPages)scrollToPage(n);}
+function jumpToPage(){const n=parseInt(document.getElementById('gotoInput').value);if(n>=1&&n<=totalPages)scrollToPage(n);document.getElementById('gotoInput').value='';}
+function togglePageSidebar(){document.getElementById('colPages').classList.toggle('open');}
+
+// Page selection
+function toggleSelectMode(){selectMode=!selectMode;document.getElementById('selectModeBtn').style.color=selectMode?'var(--accent)':'';document.getElementById('selectModeBtn').textContent=selectMode?'☑':'☐';if(!selectMode){selectedPages.clear();document.querySelectorAll('.page-thumb.selected').forEach(t=>t.classList.remove('selected'));}updateSelCount();}
+function togglePageSelection(n,el){if(selectedPages.has(n)){selectedPages.delete(n);el.classList.remove('selected');}else{selectedPages.add(n);el.classList.add('selected');}updateSelCount();document.getElementById('extractRange').value=formatPageSet(selectedPages);}
+function updateSelCount(){document.getElementById('selCount').textContent=`${selectedPages.size} sel`;}
+function formatPageSet(set){if(!set.size)return'';const s=[...set].sort((a,b)=>a-b);const r=[];let st=s[0],en=s[0];for(let i=1;i<s.length;i++){if(s[i]===en+1)en=s[i];else{r.push(st===en?`${st}`:`${st}-${en}`);st=en=s[i];}}r.push(st===en?`${st}`:`${st}-${en}`);return r.join(', ');}
+function parsePageRange(str,max){const pages=new Set();str.split(',').forEach(p=>{p=p.trim();const m=p.match(/^(\d+)\s*-\s*(\d+)$/);if(m){for(let i=Math.max(1,+m[1]);i<=Math.min(max,+m[2]);i++)pages.add(i);}else{const n=parseInt(p);if(n>=1&&n<=max)pages.add(n);}});return[...pages].sort((a,b)=>a-b);}
+function startExtractMode(){selectMode=true;document.getElementById('selectModeBtn').style.color='var(--accent)';document.getElementById('selectModeBtn').textContent='☑';document.getElementById('extractBar').classList.add('show');document.getElementById('extractRange').value=formatPageSet(selectedPages);updateSelCount();}
+function cancelExtract(){document.getElementById('extractBar').classList.remove('show');selectMode=false;selectedPages.clear();document.querySelectorAll('.page-thumb.selected').forEach(t=>t.classList.remove('selected'));document.getElementById('selectModeBtn').style.color='';document.getElementById('selectModeBtn').textContent='☐';updateSelCount();}
+
+async function extractSelectedPages(){if(!pdfDoc||!currentDirHandle||!currentFileHandle)return;const rangeStr=document.getElementById('extractRange').value;const pages=parsePageRange(rangeStr,totalPages);if(!pages.length){alert('No pages selected. Click thumbs or type range (e.g. 1-10, 15)');return;}
+const newName=document.getElementById('finalName').value.replace(/\.pdf$/i,`-PG${pages[0]}-${pages[pages.length-1]}.pdf`);if(!confirm(`Extract ${pages.length} page(s) [${rangeStr}] as:\n${newName}?`))return;
+try{const fh=await currentDirHandle.getFileHandle(currentFileHandle.name);const fd=await fh.getFile();const ab=await fd.arrayBuffer();const src=await PDFLib.PDFDocument.load(ab);const dst=await PDFLib.PDFDocument.create();const copied=await dst.copyPages(src,pages.map(p=>p-1));copied.forEach(pg=>dst.addPage(pg));const bytes=await dst.save();const h=await currentDirHandle.getFileHandle(newName,{create:true});const w=await h.createWritable();await w.write(bytes);await w.close();await refreshFileList();cancelExtract();}catch(err){alert("Extract error: "+err.message);}}
+
+// Non-PDF views
+function loadImage(){const sv=document.getElementById('singleView');sv.style.display='flex';const img=document.createElement('img');img.src=URL.createObjectURL(currentFileData);sv.appendChild(img);}
+function loadDocPreview(fn,ft){const sv=document.getElementById('singleView');sv.style.display='flex';const icons={doc:'📝',xls:'📊'};const labels={doc:'Word Document',xls:'Spreadsheet'};const sz=currentFileData.size;const ss=sz>1048576?(sz/1048576).toFixed(1)+' MB':(sz/1024).toFixed(0)+' KB';sv.innerHTML=`<div class="doc-info"><div class="doc-icon">${icons[ft]||'📎'}</div><div class="doc-name">${fn}</div><div style="font-size:12px; margin-bottom:15px;">${labels[ft]||'Document'} · ${ss}</div><div style="font-size:11px; color:#666; max-width:280px; line-height:1.5;">Preview not available for this format in browser.<br>Rename and open in native application.</div></div>`;}
+function loadGenericPreview(fn){const sv=document.getElementById('singleView');sv.style.display='flex';const sz=currentFileData.size;const ss=sz>1048576?(sz/1048576).toFixed(1)+' MB':(sz/1024).toFixed(0)+' KB';sv.innerHTML=`<div class="doc-info"><div class="doc-icon">📎</div><div class="doc-name">${fn}</div><div style="font-size:12px;">${ss}</div></div>`;}
+
+// Naming
+function generatePredictions(fn){const box=document.getElementById('predictionBox');box.innerHTML="";const raw=fn.replace(/\.[^/.]+$/,"").toUpperCase();const parts=raw.split(/[_\- .]+/);const ignore=["PDF","NEW","SCAN","IMG","DOC","FILE","COPY","OF","THE","AND","FOR"];parts.filter(p=>p.length>2&&!ignore.includes(p)).slice(0,6).forEach(word=>{const ch=document.createElement('div');ch.className='chip';ch.textContent=word;ch.onclick=()=>{const cur=document.getElementById('descText').value;document.getElementById('descText').value=cur?cur+"-"+word:word;updateFilename();};box.appendChild(ch);});}
+
+function updateFilename(){const cls=document.getElementById('classCode').value||"000";const rev=document.getElementById('revCode').value||"R00";const ver=document.getElementById('verCode').value||"V01";const spec=document.getElementById('specCode').value||"000000";let ds="000000";const dv=document.getElementById('dateReceived').value;if(dv){const d=new Date(dv);ds=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}const cc=document.getElementById('clientCode').value.toUpperCase()||"UNK";const jy=document.getElementById('jobYear').value||"00";const jn=document.getElementById('jobNum').value||"00";let desc=document.getElementById('descText').value.trim();if(!desc){if(currentFileHandle)desc=currentFileHandle.name.replace(/\.[^/.]+$/,"").replace(/\s+/g,'-');else desc="DESC";}desc=desc.replace(/\s+/g,'-');let ext=currentFileHandle?"."+currentFileHandle.name.split('.').pop().toLowerCase():".pdf";document.getElementById('finalName').value=`${cls}-${rev}-${ver}-${spec}-${ds}-${cc}${jy}${jn}-${desc}${ext}`;}
+
+function setQuick(c){document.getElementById('classCode').value=c;addRecent(c);updateFilename();}
+
+async function renameAndDelete(){if(!currentDirHandle||!currentFileHandle)return;const newName=document.getElementById('finalName').value;if(!newName||newName===currentFileHandle.name)return;const cls=document.getElementById('classCode').value;if(cls)addRecent(cls);const oldName=currentFileHandle.name;try{const fh=await currentDirHandle.getFileHandle(oldName);const fd=await fh.getFile();const buf=await fd.arrayBuffer();const nfh=await currentDirHandle.getFileHandle(newName,{create:true});const w=await nfh.createWritable();await w.write(buf);await w.close();await currentDirHandle.removeEntry(oldName);currentFileHandle=nfh;currentFileData=await nfh.getFile();document.getElementById('descText').value="";await refreshFileList();}catch(err){alert("Rename error: "+err.message+"\n\nTry re-selecting the file.");}}
+
+document.getElementById('gotoInput').addEventListener('keydown',e=>{if(e.key==='Enter')jumpToPage();});
+document.getElementById('dateReceived').value=new Date().toISOString().split('T')[0];
+updateFilename();
+</script>
+</body>
+</html>
