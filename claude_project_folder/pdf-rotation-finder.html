@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PDF.js Rotation Fix Finder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+#drop-zone { 
+  border: 2px dashed #555; padding: 40px; text-align: center; 
+  margin-bottom: 20px; cursor: pointer; color: #888;
+}
+#drop-zone.dragover { border-color: #0af; color: #0af; }
+canvas { border: 1px solid #333; margin: 4px; background: #fff; }
+.page-row { display: flex; gap: 20px; margin: 20px 0; align-items: flex-start; flex-wrap: wrap; }
+.preview { text-align: center; }
+.preview label { display: block; font-size: 11px; margin-top: 4px; color: #aaa; }
+.preview .rot-val { color: #0af; font-weight: bold; }
+h3 { color: #ff0; margin-top: 30px; }
+.correct { border: 3px solid #0f0 !important; }
+</style>
+</head>
+<body>
+<h2>Rotation Fix Finder — Tests 8 rotation values per page</h2>
+<p style="color:#888">Drop your CAD PDF. This renders pages 1, 50, 51 with every 90° rotation from -270 to +360 to find which value produces correct orientation.</p>
+<div id="drop-zone">
+  Click to select PDF or drag & drop here
+  <input type="file" id="file-input" accept=".pdf" style="display:none">
+</div>
+<div id="output"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+async function handleFile(file) {
+  if (!file) return;
+  const ab = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: ab }).promise;
+  const out = document.getElementById('output');
+  out.innerHTML = `<h3>${file.name} — ${doc.numPages} pages</h3>`;
+  
+  // Test pages: 1 (native landscape, rotate=0), 50 and 51 (rotate=270)
+  const testPages = [1, 50, 51, 60];
+  const rotations = [-270, -180, -90, 0, 90, 180, 270, 360];
+  // Also test: "default" (no rotation param)
+  
+  for (const pn of testPages) {
+    if (pn > doc.numPages) continue;
+    const page = await doc.getPage(pn);
+    const nativeRot = page.rotate;
+    const view = page.view;
+    
+    const header = document.createElement('h3');
+    header.textContent = `Page ${pn}: MediaBox=[${view.map(v=>Math.round(v)).join(',')}] pg.rotate=${nativeRot}°`;
+    out.appendChild(header);
+    
+    const row = document.createElement('div');
+    row.className = 'page-row';
+    
+    // First: default (no rotation param)
+    {
+      const vp = page.getViewport({ scale: 0.12 });
+      const c = document.createElement('canvas');
+      c.width = vp.width; c.height = vp.height;
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      const div = document.createElement('div');
+      div.className = 'preview';
+      div.appendChild(c);
+      const lbl = document.createElement('label');
+      lbl.innerHTML = `<span class="rot-val">DEFAULT</span> (no param)<br>${Math.round(vp.width)}×${Math.round(vp.height)}`;
+      div.appendChild(lbl);
+      row.appendChild(div);
+    }
+    
+    // Then: each explicit rotation value
+    for (const rot of rotations) {
+      const vp = page.getViewport({ scale: 0.12, rotation: rot });
+      const c = document.createElement('canvas');
+      c.width = vp.width; c.height = vp.height;
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      const div = document.createElement('div');
+      div.className = 'preview';
+      div.appendChild(c);
+      const lbl = document.createElement('label');
+      lbl.innerHTML = `<span class="rot-val">rotation: ${rot}</span><br>${Math.round(vp.width)}×${Math.round(vp.height)}<br>`;
+      // Show normalization
+      let norm = rot % 360;
+      if (norm < 0) norm += 360;
+      lbl.innerHTML += `(normalized: ${norm}°)`;
+      div.appendChild(lbl);
+      row.appendChild(div);
+    }
+    
+    out.appendChild(row);
+  }
+  
+  const note = document.createElement('p');
+  note.style.color = '#ff0';
+  note.innerHTML = `<br><strong>INSTRUCTIONS:</strong> Look at pages 50/51/60 and find which rotation value shows the drawing correctly ` +
+    `(title block at bottom, text readable left-to-right). That's the value we need to use.<br><br>` +
+    `For page 1 (native landscape, rotate=0), DEFAULT and rotation:0 should both look correct.`;
+  out.appendChild(note);
+}
+</script>
+</body>
+</html>

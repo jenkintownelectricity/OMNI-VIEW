@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>PDF.js Rotation Diagnostic</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #333;
+      padding: 6px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #222;
+      color: #0af;
+    }
+
+    .landscape {
+      color: #ff0;
+    }
+
+    .portrait {
+      color: #0f0;
+    }
+
+    #drop-zone {
+      border: 2px dashed #555;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      color: #888;
+    }
+
+    #drop-zone.dragover {
+      border-color: #0af;
+      color: #0af;
+    }
+
+    canvas {
+      border: 1px solid #333;
+      margin: 4px;
+    }
+
+    .page-preview {
+      display: inline-block;
+      margin: 10px;
+      text-align: center;
+    }
+
+    .page-preview label {
+      display: block;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>PDF.js Rotation Diagnostic Tool</h2>
+  <div id="drop-zone">
+    Click to select PDF or drag & drop here
+    <input type="file" id="file-input" accept=".pdf" style="display:none">
+  </div>
+  <div id="output"></div>
+  <h3>First 5 Pages Preview (3 methods each):</h3>
+  <div id="previews"></div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+    async function handleFile(file) {
+      if (!file) return;
+      const ab = await file.arrayBuffer();
+      const doc = await pdfjsLib.getDocument({ data: ab }).promise;
+
+      let html = `<h3>File: ${file.name} — ${doc.numPages} pages</h3>`;
+      html += `<table>
+    <tr>
+      <th>Page</th>
+      <th>pg.view (raw MediaBox)</th>
+      <th>rawW × rawH</th>
+      <th>pg.rotate</th>
+      <th>getViewport({scale:1})</th>
+      <th>VP w × h</th>
+      <th>getViewport({scale:1, rotation:0})</th>
+      <th>VP0 w × h</th>
+      <th>Orientation</th>
+      <th>Analysis</th>
+    </tr>`;
+
+      const previewPages = Math.min(doc.numPages, 55);
+      const previews = document.getElementById('previews');
+      previews.innerHTML = '';
+
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i);
+
+        // Raw values
+        const view = page.view; // [x1, y1, x2, y2]
+        const rawW = view[2] - view[0];
+        const rawH = view[3] - view[1];
+        const rotate = page.rotate;
+
+        // getViewport with NO rotation param
+        const vp = page.getViewport({ scale: 1 });
+
+        // getViewport with rotation:0 explicitly
+        const vp0 = page.getViewport({ scale: 1, rotation: 0 });
+
+        const orient = vp.width > vp.height ? 'LANDSCAPE' : 'PORTRAIT';
+        const orientClass = orient === 'LANDSCAPE' ? 'landscape' : 'portrait';
+
+        // Analysis
+        let analysis = '';
+        if (rotate !== 0 && rawW < rawH) {
+          analysis = `CAD export: portrait MediaBox + /Rotate:${rotate}`;
+        } else if (rotate === 0 && rawW > rawH) {
+          analysis = 'Native landscape (no rotation needed)';
+        } else if (rotate === 0) {
+          analysis = 'Native portrait';
+        } else {
+          analysis = `Rotate:${rotate} applied`;
+        }
+
+        html += `<tr>
+      <td>${i}</td>
+      <td>[${view.map(v => Math.round(v)).join(', ')}]</td>
+      <td>${Math.round(rawW)} × ${Math.round(rawH)}</td>
+      <td style="color:${rotate !== 0 ? '#f80' : '#0f0'}">${rotate}°</td>
+      <td>vp.width=${Math.round(vp.width)}, vp.height=${Math.round(vp.height)}</td>
+      <td class="${orientClass}">${Math.round(vp.width)} × ${Math.round(vp.height)}</td>
+      <td>vp0.width=${Math.round(vp0.width)}, vp0.height=${Math.round(vp0.height)}</td>
+      <td>${Math.round(vp0.width)} × ${Math.round(vp0.height)}</td>
+      <td class="${orientClass}">${orient}</td>
+      <td>${analysis}</td>
+    </tr>`;
+
+        // Render preview for first 5 pages
+        if (i <= previewPages) {
+          const container = document.createElement('div');
+          container.style.display = 'inline-block';
+          container.style.margin = '10px';
+          container.style.verticalAlign = 'top';
+
+          // Method A: getViewport({scale:0.15}) — no rotation param
+          const vpA = page.getViewport({ scale: 0.15 });
+          const cA = document.createElement('canvas');
+          cA.width = vpA.width; cA.height = vpA.height;
+          await page.render({ canvasContext: cA.getContext('2d'), viewport: vpA }).promise;
+
+          // Method B: getViewport({scale:0.15, rotation:0})
+          const vpB = page.getViewport({ scale: 0.15, rotation: 0 });
+          const cB = document.createElement('canvas');
+          cB.width = vpB.width; cB.height = vpB.height;
+          await page.render({ canvasContext: cB.getContext('2d'), viewport: vpB }).promise;
+
+          // Method C: getViewport({scale:0.15, rotation:-rotate}) to UNDO native
+          const vpC = page.getViewport({ scale: 0.15, rotation: -rotate });
+          const cC = document.createElement('canvas');
+          cC.width = vpC.width; cC.height = vpC.height;
+          await page.render({ canvasContext: cC.getContext('2d'), viewport: vpC }).promise;
+
+          container.innerHTML = `<div style="color:#0af;font-size:11px;margin-bottom:6px;">Page ${i} (pg.rotate=${rotate}°)</div>`;
+
+          const makeLabel = (label, canvas) => {
+            const div = document.createElement('div');
+            div.className = 'page-preview';
+            const lbl = document.createElement('label');
+            lbl.textContent = label;
+            div.appendChild(canvas);
+            div.appendChild(lbl);
+            return div;
+          };
+
+          container.appendChild(makeLabel(`A: getViewport({scale:0.15})\n${Math.round(vpA.width)}×${Math.round(vpA.height)}`, cA));
+          container.appendChild(makeLabel(`B: getViewport({scale:0.15, rotation:0})\n${Math.round(vpB.width)}×${Math.round(vpB.height)}`, cB));
+          container.appendChild(makeLabel(`C: getViewport({scale:0.15, rotation:${-rotate}})\n${Math.round(vpC.width)}×${Math.round(vpC.height)}`, cC));
+
+          previews.appendChild(container);
+        }
+      }
+
+      html += '</table>';
+
+      // Summary
+      const uniqueRotations = new Set();
+      for (let i = 1; i <= doc.numPages; i++) {
+        const p = await doc.getPage(i);
+        uniqueRotations.add(p.rotate);
+      }
+      html += `<h3>Summary</h3>`;
+      html += `<p>Unique rotation values found: ${[...uniqueRotations].join(', ')}°</p>`;
+      html += `<p style="color:#ff0;">KEY INSIGHT: getViewport() with NO rotation param applies pg.rotate internally.<br>`;
+      html += `getViewport({rotation:0}) ALSO applies pg.rotate (0 is added to native).<br>`;
+      html += `getViewport({rotation:R}) applies (pg.rotate + R) as total rotation.<br>`;
+      html += `To UNDO native rotation, use rotation: -pg.rotate</p>`;
+
+      document.getElementById('output').innerHTML = html;
+    }
+  </script>
+</body>
+
+</html>
