@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMNI-VIEW | Jenkintown Electricity</title>
+    <title>OMNI-VIEW v2.0 | Ultimate Edition</title>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* --- THEME: DARK MATTER --- */
+        /* --- 2. THEME: DARK MATTER --- */
         :root {
             --bg-root: #0f1115;
             --bg-panel: #161b22;
@@ -24,6 +27,7 @@
             --input-bg: #0d1117;
             --highlight: #1f6feb;
             --danger: #da3633;
+            --success: #238636;
         }
 
         * {
@@ -36,7 +40,7 @@
             height: 100vh;
             background: var(--bg-root);
             color: var(--text-main);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Inter, sans-serif;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -49,9 +53,9 @@
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            padding: 0 10px;
             justify-content: space-between;
-            flex-shrink: 0;
+            z-index: 100;
         }
 
         .app-grid {
@@ -60,23 +64,52 @@
             height: calc(100vh - 42px);
         }
 
-        /* EXPLORER & CONTROLS */
+        /* COMPONENTS */
+        .btn-action {
+            background: var(--highlight);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-action:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #ccc;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-icon.active {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* COLUMN 1: EXPLORER */
         .col-explorer {
             background: var(--bg-root);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-        }
-
-        .col-controls {
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
         }
 
         .explorer-header {
@@ -91,29 +124,45 @@
         }
 
         .file-item {
-            padding: 5px 8px;
-            font-size: 12px;
+            padding: 4px 8px;
+            font-size: 11px;
             color: var(--text-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             border-radius: 4px;
-            border: 1px solid transparent;
+            user-select: none;
         }
 
         .file-item:hover {
             background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
+            color: white;
         }
 
         .file-item.active {
             background: rgba(31, 111, 235, 0.2);
-            border-color: var(--highlight);
+            border: 1px solid var(--highlight);
             color: white;
         }
 
-        /* UNIFIED CANVAS (THE MERGED ENGINE) */
+        .icon-pdf {
+            color: #ea5c5c;
+        }
+
+        .icon-img {
+            color: #c488ec;
+        }
+
+        .icon-xls {
+            color: #5cae68;
+        }
+
+        .icon-dir {
+            color: #dcb67a;
+        }
+
+        /* COLUMN 2: UNIFIED CANVAS */
         .col-canvas {
             background: #2e2e2e;
             display: flex;
@@ -122,17 +171,16 @@
             position: relative;
         }
 
-        /* TOOLBAR */
-        .canvas-toolbar {
+        /* TOOLBARS */
+        .toolbar-row {
             height: 40px;
             background: #252526;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
             padding: 0 10px;
-            z-index: 10;
+            gap: 4px;
+            overflow-x: auto;
         }
 
         .tool-sep {
@@ -142,40 +190,61 @@
             margin: 0 4px;
         }
 
-        .tool-btn {
-            width: 32px;
-            height: 32px;
-            border: 1px solid transparent;
-            background: transparent;
-            color: #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tool-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tool-btn.active {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 8px var(--accent);
-        }
-
-        /* VIEWER AREA */
-        .viewer-container {
+        /* SPLIT VIEW CONTAINER */
+        .split-container {
             flex: 1;
             display: flex;
             overflow: hidden;
             position: relative;
         }
 
-        /* Thumbnails (Restored from Chunk 2) */
+        .view-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .view-pane.hidden {
+            display: none;
+        }
+
+        /* VIEWER INNER */
+        .scroll-view {
+            flex: 1;
+            overflow: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            background-image: radial-gradient(#444 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* THE LAYER CAKE */
+        .page-wrap {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: white;
+        }
+
+        .pdf-layer {
+            display: block;
+            pointer-events: none;
+        }
+
+        .markup-layer-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* THUMBNAILS */
         .thumb-bar {
-            width: 150px;
+            width: 120px;
             background: #1e1e1e;
             border-right: 1px solid var(--border);
             overflow-y: auto;
@@ -194,17 +263,12 @@
             cursor: pointer;
             position: relative;
             border: 2px solid transparent;
-            transition: 0.2s;
-        }
-
-        .thumb-item:hover {
-            opacity: 1;
-            border-color: #888;
         }
 
         .thumb-item.active {
             opacity: 1;
             border-color: var(--accent);
+            border-width: 2px;
         }
 
         .thumb-canvas {
@@ -224,42 +288,26 @@
             border-radius: 2px;
         }
 
-        /* Main Scroll View */
-        .scroll-view {
-            flex: 1;
-            overflow: auto;
-            padding: 40px;
+        /* COLUMN 3: CONTROLS */
+        .col-controls {
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 30px;
-            background-image: radial-gradient(#444 1px, transparent 1px);
-            background-size: 20px 20px;
+            gap: 8px;
+            overflow-y: auto;
         }
 
-        /* Page Container (The Layer Cake) */
-        .page-wrap {
-            position: relative;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-            background: white;
-            transition: transform 0.1s;
-        }
-
-        .pdf-layer {
+        label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: bold;
+            margin-bottom: 2px;
             display: block;
-            pointer-events: none;
         }
 
-        /* PDF renders here */
-        .markup-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        /* Fabric canvas sits on top */
-
-        /* UI UTILS */
         input,
         select {
             background: var(--input-bg);
@@ -270,33 +318,7 @@
             width: 100%;
             outline: none;
             border-radius: 3px;
-        }
-
-        .btn-action {
-            background: var(--highlight);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            width: 100%;
-            padding: 10px;
-            margin-top: auto;
-        }
-
-        label {
-            font-size: 9px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: bold;
-            margin-bottom: 2px;
-            display: block;
+            font-family: monospace;
         }
 
         .row {
@@ -313,46 +335,631 @@
             border: 1px solid var(--highlight);
             color: #a5d6ff;
             font-size: 9px;
-            padding: 1px 6px;
+            padding: 2px 6px;
             border-radius: 10px;
             cursor: pointer;
-            margin: 2px;
             display: inline-block;
+            margin: 2px;
         }
 
-        /* Empty State */
-        #emptyState {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: var(--text-muted);
-            pointer-events: none;
+        /* UTILS */
+        .context-menu {
+            position: fixed;
+            background: #252526;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 0;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .ctx-item {
+            padding: 6px 12px;
+            font-size: 11px;
+            color: #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ctx-item:hover {
+            background: var(--highlight);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
         }
     </style>
 </head>
 
 <body>
 
+    <div id="loader" class="loading-overlay">
+        <span class="material-icons-round" style="font-size:48px; margin-bottom:10px;">hourglass_empty</span>
+        <span id="loaderMsg">Processing...</span>
+    </div>
+
+    <div id="ctxMenu" class="context-menu">
+        <div class="ctx-item" onclick="batchRenameContext()"><span class="material-icons-round"
+                style="font-size:14px">drive_file_rename_outline</span> Batch Rename</div>
+        <div class="ctx-item" onclick="runOCR()"><span class="material-icons-round"
+                style="font-size:14px">text_snippet</span> Run OCR</div>
+        <div class="ctx-item" onclick="flattenFile()"><span class="material-icons-round"
+                style="font-size:14px">layers_clear</span> Flatten Markups</div>
+    </div>
+
     <div class="top-bar">
         <div style="font-weight:bold; color:var(--accent); display:flex; align-items:center; gap:8px;">
-            <span class="material-icons-round">bolt</span> OMNI-VIEW <span style="opacity:0.5; font-size:12px;">Unified
-                Engine (Fixed)</span>
+            <span class="material-icons-round">bolt</span> OMNI-VIEW v2.0
         </div>
-        <button class="btn-action" onclick="openProject()">OPEN PROJECT</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-icon" onclick="rotatePage()" title="Rotate Page"><span
+                    class="material-icons-round">rotate_right</span></button>
+            <button class="btn-icon" onclick="extractPage()" title="Extract Page"><span
+                    class="material-icons-round">file_upload</span></button>
+            <button class="btn-icon" onclick="flattenCurrent()" title="Flatten"><span
+                    class="material-icons-round">layers_clear</span></button>
+            <div style="width:1px; height:20px; background:#444;"></div>
+            <button class="btn-action" onclick="openProject()">OPEN PROJECT</button>
+        </div>
     </div>
 
     <div class="app-grid">
 
         <div class="col-explorer">
-            <div class="explorer-header"><input type="text" id="searchInput" placeholder="Filter..."
+            <div class="explorer-header"><input type="text" id="searchIn" placeholder="Filter..."
                     oninput="filterFiles()"></div>
             <div id="fileList" class="file-list">
-                <div style="padding:20px; text-align:center; opacity:0.5;">No Project</div>
+                <div style="padding:20px; text-align:center; opacity:0.5; font-size:11px;">No Project</div>
             </div>
         </div>
 
         <div class="col-canvas">
-            <div class="canvas-toolbar">
-                <button class="tool
+            <div class="toolbar-row">
+                <button class="btn-icon" onclick="execUndo()" title="Undo (Ctrl+Z)"><span
+                        class="material-icons-round">undo</span></button>
+                <button class="btn-icon" onclick="execRedo()" title="Redo (Ctrl+Y)"><span
+                        class="material-icons-round">redo</span></button>
+                <div class="tool-sep"></div>
+
+                <button class="btn-icon active" id="t-cursor" onclick="setTool('cursor')" title="Select"><span
+                        class="material-icons-round">near_me</span></button>
+                <button class="btn-icon" id="t-pen" onclick="setTool('pen')" title="Pen"><span
+                        class="material-icons-round">edit</span></button>
+                <button class="btn-icon" id="t-high" onclick="setTool('high')" title="Highlight"><span
+                        class="material-icons-round">brush</span></button>
+                <button class="btn-icon" onclick="addText()" title="Text Box"><span
+                        class="material-icons-round">title</span></button>
+                <button class="btn-icon" onclick="addEraser()" title="Delete Selected" style="color:var(--danger)"><span
+                        class="material-icons-round">delete</span></button>
+
+                <div class="tool-sep"></div>
+
+                <button class="btn-icon" id="t-arrow" onclick="setTool('arrow')" title="Arrow"><span
+                        class="material-icons-round">trending_flat</span></button>
+                <button class="btn-icon" id="t-cloud" onclick="setTool('cloud')" title="Cloud"><span
+                        class="material-icons-round">cloud_queue</span></button>
+                <button class="btn-icon" id="t-poly" onclick="setTool('poly')" title="Polyline (Double click end)"><span
+                        class="material-icons-round">polyline</span></button>
+                <button class="btn-icon" onclick="addCallout()" title="Callout"><span
+                        class="material-icons-round">chat_bubble_outline</span></button>
+
+                <div class="tool-sep"></div>
+
+                <button class="btn-icon" id="t-dim" onclick="setTool('dim')" title="Dimension"><span
+                        class="material-icons-round">straighten</span></button>
+                <button class="btn-icon" id="t-area" onclick="setTool('area')" title="Area"><span
+                        class="material-icons-round">crop_square</span></button>
+                <button class="btn-icon" id="t-count" onclick="setTool('count')" title="Count"><span
+                        class="material-icons-round">check_circle_outline</span></button>
+
+                <div class="tool-sep"></div>
+
+                <button class="btn-icon" onclick="toggleSplit()" title="Split View"><span
+                        class="material-icons-round">vertical_split</span></button>
+                <button class="btn-icon" onclick="syncScroll = !syncScroll; this.classList.toggle('active')"
+                    title="Sync Scroll"><span class="material-icons-round">link</span></button>
+            </div>
+
+            <div class="split-container">
+                <div class="view-pane" id="pane1">
+                    <div
+                        style="position:absolute; bottom:10px; right:10px; z-index:10; background:rgba(0,0,0,0.7); padding:4px; border-radius:4px; display:flex; align-items:center;">
+                        <button class="btn-icon" onclick="zoom(0.1)"><span class="material-icons-round"
+                                style="font-size:14px">add</span></button>
+                        <span id="zLbl" style="font-size:10px; color:white; width:30px; text-align:center;">100%</span>
+                        <button class="btn-icon" onclick="zoom(-0.1)"><span class="material-icons-round"
+                                style="font-size:14px">remove</span></button>
+                    </div>
+                    <div style="flex:1; display:flex; overflow:hidden;">
+                        <div class="thumb-bar" id="thumbBar1"></div>
+                        <div class="scroll-view" id="scroll1" onscroll="handleScroll(1)"></div>
+                    </div>
+                </div>
+
+                <div class="view-pane hidden" id="pane2">
+                    <div class="scroll-view" id="scroll2" onscroll="handleScroll(2)"
+                        style="border-left:2px solid var(--accent);">
+                        <div style="color:gray; margin-top:50px;">Drop File Here</div>
+                    </div>
+                </div>
+
+                <div id="emptyState"
+                    style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:var(--text-muted);">
+                    <span class="material-icons-round" style="font-size:64px;">hub</span><br>Select a File
+                </div>
+            </div>
+        </div>
+
+        <div class="col-controls">
+            <h3 style="margin:0; font-size:12px; color:var(--accent);">Intelligence & Meta</h3>
+
+            <div style="border:1px solid var(--border); padding:6px; border-radius:4px; background:#1e1e1e;">
+                <label style="color:var(--success);">Excel Link (SheetJS)</label>
+                <button class="btn-action" style="width:100%; justify-content:center; margin-top:4px;"
+                    onclick="linkExcel()">
+                    <span class="material-icons-round" style="font-size:14px">grid_on</span> Link .XLSX
+                </button>
+                <div id="xlsStatus" style="font-size:9px; color:#aaa; margin-top:2px;">No file linked</div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label>Class</label><input list="clL" id="cCode"><datalist id="clL"></datalist>
+                <div class="row">
+                    <div class="flex-1"><label>Rev</label><select id="rCode">
+                            <option>R00</option>
+                            <option>R01</option>
+                        </select></div>
+                    <div class="flex-1"><label>Ver</label><select id="vCode">
+                            <option>V01</option>
+                            <option>V02</option>
+                        </select></div>
+                </div>
+                <label>Spec</label><input list="spL" id="sCode"><datalist id="spL"></datalist>
+                <div class="row">
+                    <div class="flex-1"><label>Client</label><input id="cliCode"></div>
+                    <div class="flex-1"><label>Date</label><input id="dStr"></div>
+                </div>
+                <label>Description</label><input id="descTxt">
+                <div id="predBox" style="margin-top:2px; display:flex; flex-wrap:wrap;"></div>
+                <div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;">
+                    <label>Target Filename</label><input id="fName" readonly
+                        style="margin-bottom:5px; color:var(--accent);">
+                    <button class="btn-action btn-danger" onclick="renameFile()" id="rnBtn" disabled
+                        style="width:100%; justify-content:center;">RENAME</button>
+                </div>
+            </div>
+
+            <div style="margin-top:auto; border-top:1px solid var(--border); padding-top:10px;">
+                <label style="color:var(--highlight);">Calibration</label>
+                <div class="row">
+                    <input id="calDist" placeholder="Meas" style="width:50px"> px =
+                    <input id="calReal" placeholder="Real" style="width:50px"> ft
+                    <button onclick="setCal()"
+                        style="cursor:pointer; border:none; background:var(--highlight); color:white; border-radius:3px;">Set</button>
+                </div>
+                <div id="calStatus" style="font-size:9px; color:#aaa;">Scale: Uncalibrated</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * OMNI-VIEW v2.0 - ULTIMATE BUILD
+         * Integrated Single-File Solution
+         */
+
+        // --- 1. GLOBAL STATE ---
+        let rootH, dirH, currentFileH;
+        let pdfDoc = null;
+        let scale = 1.0;
+        let fabricPages = []; // [{id: 1, canvas: fabricCanvas}]
+        let historyStack = []; // [{ pageId: 1, json: '...' }]
+        let historyIdx = -1;
+        let activeTool = 'cursor';
+        let splitActive = false;
+        let syncScroll = false;
+        let excelWorkbook = null;
+        let calibration = null; // { pxPerFt: 50 }
+
+        // Polyline/Polygon State
+        let drawingPoly = false;
+        let polyPoints = [];
+        let tempLine = null;
+
+        // --- 2. INIT ---
+        const TAX = [{ c: "000", d: "Admin" }, { c: "301", d: "Assembly" }, { c: "302", d: "Product" }, { c: "210", d: "Arch" }];
+        const SPC = [{ v: "260000", l: "General" }, { v: "265100", l: "Lighting" }];
+
+        window.onload = () => {
+            // Init Datalists
+            TAX.forEach(x => document.getElementById('clL').appendChild(new Option(x.d, x.c)));
+            SPC.forEach(x => document.getElementById('spL').appendChild(new Option(x.l, x.v)));
+
+            // Date
+            document.getElementById('dStr').value = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+
+            // Listeners
+            ['cCode', 'rCode', 'vCode', 'sCode', 'cliCode', 'dStr', 'descTxt'].forEach(id => document.getElementById(id).oninput = updateName);
+
+            // Global Keys
+            window.addEventListener('keydown', e => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); execUndo(); }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); execRedo(); }
+            });
+
+            // Context Menu Close
+            window.onclick = () => document.getElementById('ctxMenu').style.display = 'none';
+        };
+
+        // --- 3. FILE SYSTEM ---
+        async function openProject() {
+            try { rootH = await showDirectoryPicker(); dirH = rootH; refreshFiles(); }
+            catch (e) { console.log('Cancel'); }
+        }
+
+        async function refreshFiles() {
+            if (!dirH) return;
+            const list = document.getElementById('fileList'); list.innerHTML = '';
+            let entries = [];
+            for await (const e of dirH.values()) entries.push(e);
+            entries.sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === 'directory' ? -1 : 1));
+
+            for (const e of entries) {
+                const d = document.createElement('div');
+                d.className = 'file-item';
+                let icon = 'description', cls = '';
+                if (e.kind === 'directory') { icon = 'folder'; cls = 'icon-dir'; }
+                else if (e.name.endsWith('.pdf')) { icon = 'picture_as_pdf'; cls = 'icon-pdf'; }
+                else if (e.name.endsWith('.xlsx')) { icon = 'grid_on'; cls = 'icon-xls'; }
+
+                d.innerHTML = `<span class="material-icons-round ${cls}" style="font-size:16px;">${icon}</span> ${e.name}`;
+
+                // Interaction
+                if (e.kind === 'directory') d.onclick = async () => { dirH = e; await refreshFiles(); };
+                else {
+                    d.onclick = () => loadFile(e, d);
+                    d.oncontextmenu = (ev) => {
+                        ev.preventDefault();
+                        currentFileH = e; // Set context
+                        const m = document.getElementById('ctxMenu');
+                        m.style.left = ev.pageX + 'px'; m.style.top = ev.pageY + 'px';
+                        m.style.display = 'block';
+                    };
+                }
+                list.appendChild(d);
+            }
+        }
+
+        // --- 4. LOAD & RENDER ENGINE ---
+        async function loadFile(handle, el) {
+            if (el) { document.querySelectorAll('.file-item').forEach(x => x.classList.remove('active')); el.classList.add('active'); }
+            currentFileH = handle;
+            document.getElementById('rnBtn').disabled = false;
+
+            // Renaming Preds
+            const raw = handle.name.replace(/\.[^/.]+$/, "").replace(/[_\s]/g, '-');
+            if (!document.getElementById('descTxt').value) document.getElementById('descTxt').value = raw;
+            updateName();
+
+            if (handle.name.toLowerCase().endsWith('.pdf')) {
+                showLoader(true);
+                const f = await handle.getFile();
+                const ab = await f.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument(ab).promise;
+                await renderDoc();
+                showLoader(false);
+            }
+        }
+
+        async function renderDoc() {
+            const sv = document.getElementById('scroll1'); sv.innerHTML = '';
+            const tb = document.getElementById('thumbBar1'); tb.innerHTML = '';
+            fabricPages = []; historyStack = []; historyIdx = -1;
+
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                // A. WRAPPER
+                const wrap = document.createElement('div');
+                wrap.className = 'page-wrap'; wrap.id = `pg-${i}`;
+                sv.appendChild(wrap);
+
+                // B. LAYERS
+                const pdfCan = document.createElement('canvas'); pdfCan.className = 'pdf-layer';
+                wrap.appendChild(pdfCan);
+
+                const markDiv = document.createElement('div'); markDiv.className = 'markup-layer-wrap';
+                wrap.appendChild(markDiv);
+                const markCan = document.createElement('canvas'); markCan.id = `fc-${i}`;
+                markDiv.appendChild(markCan);
+
+                // C. RENDER PDF
+                const page = await pdfDoc.getPage(i);
+                const vp = page.getViewport({ scale: scale * 1.5 }); // High DPI
+                const cssW = vp.width / 1.5, cssH = vp.height / 1.5;
+
+                pdfCan.width = vp.width; pdfCan.height = vp.height;
+                pdfCan.style.width = cssW + 'px'; pdfCan.style.height = cssH + 'px';
+                await page.render({ canvasContext: pdfCan.getContext('2d'), viewport: vp }).promise;
+
+                // D. FABRIC
+                const fc = new fabric.Canvas(`fc-${i}`, { width: cssW, height: cssH });
+                fc.setZoom(scale);
+                fc.pageIndex = i;
+
+                // History Hook
+                fc.on('object:modified', () => pushHistory(i, fc));
+                fc.on('object:added', (e) => { if (!e.target.excludeFromHistory) pushHistory(i, fc); });
+
+                // Interaction Hook (Polyline/Dims)
+                fc.on('mouse:down', (opt) => handleMouseDown(fc, opt));
+                fc.on('mouse:move', (opt) => handleMouseMove(fc, opt));
+                fc.on('mouse:dblclick', (opt) => handleDbClick(fc, opt));
+
+                fabricPages.push({ id: i, canvas: fc });
+
+                // E. THUMBNAIL
+                makeThumb(i, page, tb);
+            }
+            setTool(activeTool);
+        }
+
+        async function makeThumb(i, page, container) {
+            const vp = page.getViewport({ scale: 0.2 });
+            const d = document.createElement('div'); d.className = 'thumb-item';
+            d.onclick = () => document.getElementById(`pg-${i}`).scrollIntoView({ behavior: 'smooth' });
+            const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; c.className = 'thumb-canvas';
+            d.appendChild(c);
+            const n = document.createElement('div'); n.className = 'thumb-num'; n.innerText = i;
+            d.appendChild(n);
+            container.appendChild(d);
+            await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        }
+
+        // --- 5. TOOL LOGIC ---
+        function setTool(t) {
+            activeTool = t;
+            document.querySelectorAll('.btn-icon').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById(`t-${t}`); if (btn) btn.classList.add('active');
+
+            fabricPages.forEach(p => {
+                const fc = p.canvas;
+                fc.isDrawingMode = (t === 'pen' || t === 'high');
+                fc.selection = (t === 'cursor' || t === 'eraser');
+                fc.defaultCursor = (t === 'cursor') ? 'default' : 'crosshair';
+
+                if (t === 'pen') { fc.freeDrawingBrush.width = 2; fc.freeDrawingBrush.color = "red"; }
+                if (t === 'high') { fc.freeDrawingBrush.width = 15; fc.freeDrawingBrush.color = "rgba(255,255,0,0.3)"; }
+            });
+        }
+
+        // Advanced Handlers
+        function handleMouseDown(fc, opt) {
+            const ptr = fc.getPointer(opt.e);
+
+            if (activeTool === 'poly' || activeTool === 'area') {
+                if (!drawingPoly) {
+                    drawingPoly = true;
+                    polyPoints = [ptr];
+                } else {
+                    polyPoints.push(ptr);
+                    // Draw temp line
+                    const pts = [polyPoints[polyPoints.length - 2], ptr];
+                    const line = new fabric.Line([pts[0].x, pts[0].y, pts[1].x, pts[1].y], { stroke: 'blue', strokeWidth: 1, selectable: false });
+                    fc.add(line);
+                }
+            }
+            else if (activeTool === 'count') {
+                const circle = new fabric.Circle({ left: ptr.x - 5, top: ptr.y - 5, radius: 5, fill: 'red', stroke: 'white', strokeWidth: 1 });
+                const num = new fabric.Text("1", { left: ptr.x - 2, top: ptr.y - 4, fontSize: 10, fill: 'white' });
+                const group = new fabric.Group([circle, num], { selectable: true });
+                fc.add(group);
+                pushToExcel("Count", 1);
+            }
+            else if (activeTool === 'text') {
+                const txt = new fabric.IText("Type Here", { left: ptr.x, top: ptr.y, fontSize: 14, fill: 'red' });
+                fc.add(txt); fc.setActiveObject(txt); setTool('cursor');
+            }
+        }
+
+        function handleMouseMove(fc, opt) {
+            if ((activeTool === 'poly' || activeTool === 'area') && drawingPoly) {
+                // Ghost line logic could go here
+            }
+        }
+
+        function handleDbClick(fc, opt) {
+            if (activeTool === 'poly') {
+                drawingPoly = false;
+                const poly = new fabric.Polyline(polyPoints, { stroke: 'red', strokeWidth: 2, fill: 'transparent' });
+                fc.add(poly);
+                // Clear temp lines (naive)
+                fc.getObjects('line').forEach(o => fc.remove(o));
+                polyPoints = [];
+            }
+            else if (activeTool === 'area') {
+                drawingPoly = false;
+                const poly = new fabric.Polygon(polyPoints, { fill: 'rgba(255,0,0,0.3)', stroke: 'red', strokeWidth: 1 });
+                fc.add(poly);
+                fc.getObjects('line').forEach(o => fc.remove(o));
+
+                // CALC AREA
+                if (calibration) {
+                    // Simplified bbox area for prototype
+                    const areaPx = poly.width * poly.height; // Approximate
+                    const areaFt = (areaPx / (calibration.pxPerFt * calibration.pxPerFt)).toFixed(2);
+                    alert(`Area: ${areaFt} sq ft`);
+                    pushToExcel("Area", areaFt);
+                }
+                polyPoints = [];
+            }
+        }
+
+        // Special Tools
+        function addText() { activeTool = 'text'; } // Handled in mouseDown
+        function addEraser() {
+            fabricPages.forEach(p => {
+                const a = p.canvas.getActiveObjects();
+                if (a.length) { p.canvas.discardActiveObject(); a.forEach(o => p.canvas.remove(o)); }
+            });
+        }
+        function addCallout() {
+            const fc = fabricPages[0].canvas; // First page default
+            const t = new fabric.IText("Note", { left: 100, top: 50, fontSize: 14, fill: 'red' });
+            const l = new fabric.Line([50, 100, 100, 60], { stroke: 'red', strokeWidth: 1 });
+            const tri = new fabric.Triangle({ width: 10, height: 10, fill: 'red', left: 50, top: 100, angle: -135 });
+            const g = new fabric.Group([l, tri, t]);
+            fc.add(g);
+        }
+
+        // --- 6. HISTORY ---
+        function pushHistory(pgId, fc) {
+            // Simple stack: Save JSON of page
+            if (historyIdx < historyStack.length - 1) historyStack = historyStack.slice(0, historyIdx + 1);
+            historyStack.push({ pageId: pgId, json: fc.toJSON() });
+            historyIdx++;
+        }
+        function execUndo() {
+            if (historyIdx >= 0) {
+                const state = historyStack[historyIdx];
+                // To undo, we actually need the PREVIOUS state of that page. 
+                // Simplified L0 approach: Just pop and reload (Warning: this clears if no prev state)
+                const target = fabricPages.find(p => p.id === state.pageId);
+                if (target) {
+                    // In a real app, we need the state BEFORE the change. 
+                    // Here we just remove the last added object for demo
+                    const objs = target.canvas.getObjects();
+                    if (objs.length) target.canvas.remove(objs[objs.length - 1]);
+                }
+                historyIdx--;
+            }
+        }
+        function execRedo() { /* Requires forward stack implementation */ }
+
+        // --- 7. DOCUMENT OPS (PDF-LIB) ---
+        async function rotatePage() {
+            if (!pdfDoc) return;
+            showLoader(true);
+            const file = await currentFileH.getFile();
+            const ab = await file.arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(ab);
+            const pages = pdf.getPages();
+            // Rotate all for simplicity
+            pages.forEach(p => p.setRotation(PDFLib.degrees(90)));
+            const saved = await pdf.save();
+            // Overwrite
+            const w = await currentFileH.createWritable();
+            await w.write(saved); await w.close();
+            loadFile(currentFileH);
+        }
+
+        async function extractPage() {
+            // Extract Page 1
+            const pdf = await PDFLib.PDFDocument.create();
+            const srcFile = await currentFileH.getFile();
+            const srcPdf = await PDFLib.PDFDocument.load(await srcFile.arrayBuffer());
+            const [pg] = await pdf.copyPages(srcPdf, [0]);
+            pdf.addPage(pg);
+            const saved = await pdf.save();
+            // Save logic omitted for brevity (requires showSaveFilePicker)
+            alert("Page 1 Extracted (Memory)");
+        }
+
+        async function flattenCurrent() {
+            alert("Flattening combines Markups into PDF... (Implemented in V3)");
+            // Logic: Canvas to Image -> pdf-lib drawImage -> Save
+        }
+
+        // --- 8. INTELLIGENCE (OCR & EXCEL) ---
+        async function runOCR() {
+            if (!fabricPages.length) return;
+            showLoader(true, "Running Tesseract OCR...");
+            const c = document.querySelector('.pdf-layer'); // Grab first canvas
+            const res = await Tesseract.recognize(c, 'eng');
+            alert("OCR Result: " + res.data.text.slice(0, 100) + "...");
+            showLoader(false);
+        }
+
+        async function linkExcel() {
+            try {
+                const h = await showOpenFilePicker({ types: [{ accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }] });
+                const f = await h[0].getFile();
+                const ab = await f.arrayBuffer();
+                excelWorkbook = XLSX.read(ab);
+                document.getElementById('xlsStatus').innerText = "Linked: " + h[0].name;
+            } catch (e) { }
+        }
+
+        function pushToExcel(type, val) {
+            if (!excelWorkbook) return;
+            // Mock Write: Just alerts for now. 
+            // Real implementation requires writing buffer back to file handle
+            console.log(`Writing ${type}: ${val} to Excel`);
+        }
+
+        // --- 9. CALIBRATION & RENAMING ---
+        function setCal() {
+            const px = parseFloat(document.getElementById('calDist').value);
+            const ft = parseFloat(document.getElementById('calReal').value);
+            if (px && ft) {
+                calibration = { pxPerFt: px / ft };
+                document.getElementById('calStatus').innerText = `Scale: 1ft = ${(px / ft).toFixed(1)}px`;
+            }
+        }
+
+        function updateName() {
+            const v = id => document.getElementById(id).value;
+            const fn = `${v('cCode')}-${v('rCode')}-${v('vCode')}-${v('sCode')}-${v('dStr')}-${(v('cliCode') || 'UNK')}-${v('descTxt').replace(/\s/g, '-')}`;
+            document.getElementById('fName').value = fn + (currentFileH ? '.' + currentFileH.name.split('.').pop() : '.pdf');
+        }
+
+        async function renameFile() {
+            const n = document.getElementById('fName').value;
+            const nh = await dirH.getFileHandle(n, { create: true });
+            const src = await currentFileH.getFile();
+            const w = await nh.createWritable(); await w.write(src); await w.close();
+            await dirH.removeEntry(currentFileH.name);
+            refreshFiles();
+        }
+
+        // --- UTILS ---
+        function zoom(d) {
+            scale += d; if (scale < 0.2) scale = 0.2;
+            document.getElementById('zLbl').innerText = Math.round(scale * 100) + '%';
+            renderDoc(); // Re-render for crispness
+        }
+
+        function toggleSplit() {
+            const p2 = document.getElementById('pane2');
+            p2.classList.toggle('hidden');
+        }
+
+        function handleScroll(id) {
+            if (!syncScroll) return;
+            const s1 = document.getElementById('scroll1');
+            const s2 = document.getElementById('scroll2');
+            if (id === 1) s2.scrollTop = s1.scrollTop;
+            else s1.scrollTop = s2.scrollTop;
+        }
+
+        function showLoader(b, msg = "Processing...") {
+            document.getElementById('loader').style.display = b ? 'flex' : 'none';
+            document.getElementById('loaderMsg').innerText = msg;
+        }
+
+    </script>
+</body>
+
+</html>

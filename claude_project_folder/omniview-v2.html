@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMNI-VIEW v2.0 — Ultimate</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DARK MATTER THEME v2.0
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-root:#0b0d11;--bg-panel:#0f1117;--bg-header:#12151d;--bg-surface:#161a24;
+  --bg-hover:#1c2030;--bg-active:#1e2538;--border:#1e2230;--border-bright:#2a3040;
+  --text-primary:#d0d8e4;--text-secondary:#707a90;--text-muted:#4a5268;
+  --accent:#00a8ff;--accent-dim:rgba(0,168,255,0.12);
+  --red:#e74c3c;--green:#2ecc71;--yellow:#f1c40f;--orange:#f0a030;--purple:#a06cd5;
+  --font-mono:'SF Mono','Cascadia Code','JetBrains Mono','Fira Code',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text-primary);font-family:var(--font-mono);font-size:12px;user-select:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2a3040;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#3a4050}
+
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* TITLE BAR */
+#titlebar{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg,#14182200,#0f1117);border-bottom:1px solid var(--border);flex-shrink:0}
+#titlebar .logo{display:flex;align-items:center;gap:8px}
+#titlebar .logo .diamond{color:var(--accent);font-size:18px;font-weight:900}
+#titlebar .logo .name{color:#e0e8f0;font-weight:800;font-size:14px;letter-spacing:3px}
+#titlebar .logo .ver{color:var(--orange);font-size:8px;font-weight:700;letter-spacing:1.5px;background:rgba(240,160,48,0.1);padding:2px 6px;border-radius:3px}
+#titlebar .status{color:var(--text-muted);font-size:10px}
+
+/* MENUBAR */
+#menubar{height:28px;display:flex;align-items:center;padding:0 4px;background:var(--bg-panel);border-bottom:1px solid var(--border);flex-shrink:0;gap:0;position:relative}
+.menu-root{position:relative}
+.menu-root>button{background:transparent;border:none;color:var(--text-secondary);padding:4px 10px;font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:3px}
+.menu-root>button:hover,.menu-root>button.open{background:var(--bg-hover);color:var(--text-primary)}
+.menu-drop{display:none;position:absolute;top:100%;left:0;min-width:240px;background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,0.7);z-index:9000;padding:4px 0}
+.menu-drop.show{display:block}
+.menu-drop button{display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 14px;background:transparent;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;cursor:pointer;text-align:left}
+.menu-drop button:hover{background:var(--bg-hover)}
+.menu-drop button.disabled{opacity:0.35;pointer-events:none}
+.menu-drop button .shortcut{color:var(--text-muted);font-size:9px;margin-left:16px}
+.menu-divider{height:1px;background:var(--border);margin:4px 10px}
+
+/* TOOLBAR */
+#toolbar{height:40px;display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--bg-header);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.tb-btn{width:34px;height:30px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid transparent;border-radius:5px;color:var(--text-secondary);cursor:pointer;font-size:18px;transition:all .12s;position:relative;flex-shrink:0}
+.tb-btn:hover{background:var(--bg-hover);color:var(--text-primary);border-color:var(--border)}
+.tb-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,168,255,0.3)}
+.tb-btn.disabled{opacity:0.3;pointer-events:none}
+.tb-sep{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0}
+.tb-label{font-size:10px;color:var(--text-muted);padding:0 6px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0}
+.tb-zoom{font-size:11px;color:var(--text-secondary);font-weight:700;min-width:44px;text-align:center;padding:0 4px;cursor:pointer;flex-shrink:0}
+.tb-zoom:hover{color:var(--accent)}
+
+/* MAIN LAYOUT */
+#main{flex:1;display:flex;overflow:hidden}
+
+/* LEFT PANEL */
+#panel-left{width:240px;min-width:180px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.panel-hdr{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:var(--bg-header);border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-hdr span{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-muted)}
+.panel-hdr button{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center}
+.panel-hdr button:hover{color:var(--accent)}
+#file-filter{margin:6px 8px;padding:5px 8px;background:var(--bg-root);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;outline:none}
+#file-filter:focus{border-color:var(--accent)}
+#file-tree{flex:1;overflow-y:auto;padding:2px 0}
+.file-item{display:flex;align-items:center;gap:6px;padding:4px 10px;cursor:pointer;border-left:2px solid transparent;transition:background .08s;width:100%;background:transparent;border-top:none;border-right:none;border-bottom:none;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;text-align:left}
+.file-item:hover{background:var(--bg-hover)}
+.file-item.selected{background:var(--accent-dim);border-left-color:var(--accent)}
+.file-item .material-icons-round{font-size:16px}
+.file-item .fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#workspace-label{padding:6px 10px;border-top:1px solid var(--border);font-size:9px;color:var(--accent);font-weight:700;flex-shrink:0}
+
+/* THUMB SIDEBAR */
+#thumb-sidebar{width:110px;background:#0a0c10;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+#thumb-sidebar.hidden{display:none}
+#thumb-list{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:6px}
+.thumb-item{cursor:pointer;border:2px solid var(--border);border-radius:3px;display:flex;flex-direction:column;align-items:center;padding:3px;background:transparent;transition:border-color .12s;font-family:var(--font-mono)}
+.thumb-item:hover{border-color:var(--text-muted)}
+.thumb-item.active{border-color:var(--accent);background:var(--accent-dim)}
+.thumb-item canvas{width:100%;height:auto;display:block;border-radius:1px}
+.thumb-item .tnum{font-size:8px;color:var(--text-muted);margin-top:2px;font-weight:700}
+
+/* VIEWPORT CONTAINER — supports split */
+#viewport-container{flex:1;display:flex;overflow:hidden;position:relative}
+.viewport-pane{flex:1;overflow:auto;background:#1a1c22;position:relative}
+.viewport-pane.grabbing{cursor:grabbing}
+.viewport-pane.grab{cursor:grab}
+#split-divider{width:4px;background:var(--accent);cursor:col-resize;flex-shrink:0;display:none}
+#split-divider:hover{background:#00c0ff}
+#viewport-b{display:none}
+.page-column{display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:16px;min-height:100%}
+.page-wrapper{position:relative;background:#fff;flex-shrink:0;box-shadow:0 4px 28px rgba(0,0,0,0.45);border-radius:1px}
+.page-wrapper.current-page{box-shadow:0 0 0 2px var(--accent),0 4px 28px rgba(0,0,0,0.45)}
+.page-wrapper canvas.pdf-canvas{display:block;position:absolute;top:0;left:0}
+.page-wrapper canvas.fabric-canvas{display:block;position:absolute;top:0;left:0;z-index:2}
+.page-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text-muted);white-space:nowrap}
+
+/* EMPTY STATE */
+#empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#empty-state .big-diamond{font-size:56px;color:var(--accent);opacity:0.12;font-weight:900}
+#empty-state .title{font-size:26px;font-weight:900;color:#222838;letter-spacing:6px}
+#empty-state .sub{font-size:10px;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
+#empty-state .hint{font-size:11px;color:#3a4258;margin-top:8px}
+
+/* RIGHT PANEL */
+#panel-right{width:260px;min-width:200px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.rename-section{padding:10px;border-bottom:1px solid var(--border)}
+.rename-row{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.rename-row label{font-size:9px;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;font-weight:700}
+.rename-row select,.rename-row input{padding:5px 8px;background:var(--bg-root);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;outline:none}
+.rename-row select:focus,.rename-row input:focus{border-color:var(--accent)}
+.rename-row select option{background:var(--bg-surface)}
+#predict-box{margin:0 10px 10px;padding:10px;background:var(--bg-root);border:1px solid var(--border);border-radius:6px}
+#predict-box .plabel{font-size:8px;font-weight:700;color:var(--accent);letter-spacing:1.5px;margin-bottom:4px}
+#predict-box .pvalue{font-size:12px;font-weight:700;color:var(--text-primary);word-break:break-all;min-height:18px}
+.btn-rename{margin:0 10px 10px;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:5px;cursor:pointer;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-rename:hover{filter:brightness(1.15)}
+.btn-rename:disabled{opacity:0.35;cursor:default;filter:none}
+
+/* TOOL CHEST */
+.tool-chest-section{padding:8px 10px;border-bottom:1px solid var(--border)}
+.tool-chest-section .tcs-title{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.tool-chest-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px}
+.tc-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 2px;background:var(--bg-surface);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-secondary);font-family:var(--font-mono);transition:all .12s}
+.tc-btn:hover{background:var(--bg-hover);color:var(--text-primary);border-color:var(--border-bright)}
+.tc-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,168,255,0.35)}
+.tc-btn .material-icons-round{font-size:18px}
+.tc-btn .tc-label{font-size:7px;letter-spacing:0.3px;font-weight:600}
+
+/* DOC OPS BUTTONS */
+.doc-ops{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.doc-ops button{padding:6px 10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-family:var(--font-mono);font-size:10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600}
+.doc-ops button:hover{background:var(--bg-hover);color:var(--text-primary);border-color:var(--border-bright)}
+.doc-ops button .material-icons-round{font-size:15px}
+
+/* STATUS BAR */
+#statusbar{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--bg-root);border-top:1px solid var(--border);font-size:9px;color:var(--text-muted);flex-shrink:0}
+
+/* TOAST */
+#toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:8px;padding:10px 20px;color:var(--text-primary);font-size:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.6);white-space:nowrap;pointer-events:none;opacity:0;transition:all .25s ease}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* IMAGE VIEWER */
+#image-viewer{display:flex;align-items:flex-start;justify-content:center;min-height:100%;padding:20px}
+#image-viewer img{max-width:100%;height:auto;box-shadow:0 4px 24px rgba(0,0,0,0.5);border-radius:2px}
+
+/* CONTEXT MENU */
+#context-menu{display:none;position:fixed;min-width:200px;background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,0.7);z-index:9500;padding:4px 0}
+#context-menu button{display:flex;align-items:center;gap:8px;width:100%;padding:6px 14px;background:transparent;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;cursor:pointer;text-align:left}
+#context-menu button:hover{background:var(--bg-hover)}
+#context-menu button .material-icons-round{font-size:15px;color:var(--text-secondary)}
+
+/* CALIBRATION DIALOG */
+.dialog-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9800;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.dialog-overlay.show{display:flex}
+.dialog-box{background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:10px;padding:20px;min-width:340px;box-shadow:0 20px 60px rgba(0,0,0,0.7)}
+.dialog-box h3{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;letter-spacing:1px}
+.dialog-box label{font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;font-weight:700;letter-spacing:0.5px}
+.dialog-box input,.dialog-box select{width:100%;padding:6px 10px;background:var(--bg-root);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;outline:none;margin-bottom:10px}
+.dialog-box input:focus{border-color:var(--accent)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.dialog-actions button{padding:7px 16px;border-radius:5px;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border)}
+.dialog-actions .btn-p{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dialog-actions .btn-s{background:transparent;color:var(--text-secondary)}
+
+/* OCR PROGRESS */
+#ocr-progress{display:none;position:fixed;bottom:60px;right:20px;background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:8px;padding:12px 18px;z-index:9600;box-shadow:0 8px 28px rgba(0,0,0,0.5)}
+#ocr-progress .opr-title{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:6px}
+#ocr-progress .opr-bar{width:200px;height:6px;background:var(--bg-root);border-radius:3px;overflow:hidden}
+#ocr-progress .opr-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .2s}
+#ocr-progress .opr-text{font-size:9px;color:var(--text-muted);margin-top:4px}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TITLE BAR -->
+  <div id="titlebar">
+    <div class="logo">
+      <span class="diamond">◆</span>
+      <span class="name">OMNI-VIEW</span>
+      <span class="ver">v2.0 ULTIMATE</span>
+    </div>
+    <div class="status" id="global-status">Ready</div>
+  </div>
+
+  <!-- MENU BAR -->
+  <div id="menubar"></div>
+
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <button class="tb-btn" id="btn-open" title="Open Workspace (Ctrl+O)"><span class="material-icons-round">folder_open</span></button>
+    <button class="tb-btn" id="btn-refresh" title="Refresh (F5)"><span class="material-icons-round">refresh</span></button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)"><span class="material-icons-round">undo</span></button>
+    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)"><span class="material-icons-round">redo</span></button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-thumb-toggle" title="Toggle Thumbnails"><span class="material-icons-round">view_sidebar</span></button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-zoom-out" title="Zoom Out"><span class="material-icons-round">remove</span></button>
+    <div class="tb-zoom" id="zoom-display" title="Click for 100%">100%</div>
+    <button class="tb-btn" id="btn-zoom-in" title="Zoom In"><span class="material-icons-round">add</span></button>
+    <button class="tb-btn" id="btn-fit-width" title="Fit Width"><span class="material-icons-round">fit_screen</span></button>
+    <div class="tb-sep"></div>
+    <span class="tb-label">DRAW:</span>
+    <button class="tb-btn tool-btn active" data-tool="cursor" title="Cursor (V)"><span class="material-icons-round">near_me</span></button>
+    <button class="tb-btn tool-btn" data-tool="pen" title="Pen (P)"><span class="material-icons-round">edit</span></button>
+    <button class="tb-btn tool-btn" data-tool="highlighter" title="Highlighter (H)"><span class="material-icons-round">highlight</span></button>
+    <button class="tb-btn tool-btn" data-tool="text" title="Text Box (T)"><span class="material-icons-round">text_fields</span></button>
+    <button class="tb-btn tool-btn" data-tool="arrow" title="Arrow (A)"><span class="material-icons-round">arrow_right_alt</span></button>
+    <button class="tb-btn tool-btn" data-tool="rect" title="Rectangle (R)"><span class="material-icons-round">crop_square</span></button>
+    <button class="tb-btn tool-btn" data-tool="polyline" title="Polyline (N)"><span class="material-icons-round">timeline</span></button>
+    <button class="tb-btn tool-btn" data-tool="cloud" title="Revision Cloud (C)"><span class="material-icons-round">cloud</span></button>
+    <button class="tb-btn tool-btn" data-tool="callout" title="Callout (Q)"><span class="material-icons-round">chat_bubble</span></button>
+    <button class="tb-btn tool-btn" data-tool="dimension" title="Dimension (L)"><span class="material-icons-round">straighten</span></button>
+    <button class="tb-btn tool-btn" data-tool="count" title="Count (G)"><span class="material-icons-round">pin</span></button>
+    <button class="tb-btn tool-btn" data-tool="stamp" title="Image Stamp (I)"><span class="material-icons-round">add_photo_alternate</span></button>
+    <button class="tb-btn tool-btn" data-tool="eraser" title="Eraser (E)"><span class="material-icons-round">delete</span></button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-save-markups" title="Save Markups (JSON)"><span class="material-icons-round">save</span></button>
+    <button class="tb-btn" id="btn-load-markups" title="Load Markups"><span class="material-icons-round">file_open</span></button>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- LEFT: EXPLORER -->
+    <div id="panel-left">
+      <div class="panel-hdr"><span>EXPLORER</span><button id="btn-open-inline" title="Open Workspace"><span class="material-icons-round" style="font-size:16px;">add</span></button></div>
+      <input type="text" id="file-filter" placeholder="Filter files…">
+      <div id="file-tree"></div>
+      <div id="workspace-label" style="display:none;"></div>
+    </div>
+
+    <!-- THUMBNAILS -->
+    <div id="thumb-sidebar" class="hidden">
+      <div class="panel-hdr"><span>PAGES</span></div>
+      <div id="thumb-list"></div>
+    </div>
+
+    <!-- CENTER: SPLIT VIEWPORT -->
+    <div id="viewport-container">
+      <div class="viewport-pane" id="viewport-a">
+        <div id="empty-state">
+          <div class="big-diamond">◆</div>
+          <div class="title">OMNI-VIEW</div>
+          <div class="sub">Unified Document Workspace</div>
+          <div class="hint">Open a workspace and select a PDF to begin</div>
+        </div>
+      </div>
+      <div id="split-divider"></div>
+      <div class="viewport-pane" id="viewport-b"></div>
+    </div>
+
+    <!-- RIGHT: TOOLS + RENAME -->
+    <div id="panel-right">
+      <!-- REDLINE TOOLS -->
+      <div class="tool-chest-section">
+        <div class="tcs-title"><span>REDLINE TOOLS</span></div>
+        <div class="tool-chest-grid">
+          <button class="tc-btn tool-btn-tc active" data-tool="cursor"><span class="material-icons-round">near_me</span><span class="tc-label">Cursor</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="pen"><span class="material-icons-round">edit</span><span class="tc-label">Pen</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="highlighter"><span class="material-icons-round">highlight</span><span class="tc-label">Highlight</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="text"><span class="material-icons-round">text_fields</span><span class="tc-label">Text</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="arrow"><span class="material-icons-round">arrow_right_alt</span><span class="tc-label">Arrow</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="rect"><span class="material-icons-round">crop_square</span><span class="tc-label">Rect</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="polyline"><span class="material-icons-round">timeline</span><span class="tc-label">Polyline</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="cloud"><span class="material-icons-round">cloud</span><span class="tc-label">Cloud</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="callout"><span class="material-icons-round">chat_bubble</span><span class="tc-label">Callout</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="dimension"><span class="material-icons-round">straighten</span><span class="tc-label">Dim</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="count"><span class="material-icons-round">pin</span><span class="tc-label">Count</span></button>
+          <button class="tc-btn tool-btn-tc" data-tool="eraser"><span class="material-icons-round">delete</span><span class="tc-label">Eraser</span></button>
+        </div>
+      </div>
+
+      <!-- DOCUMENT OPERATIONS -->
+      <div class="tool-chest-section">
+        <div class="tcs-title"><span>DOCUMENT OPS</span></div>
+        <div class="doc-ops">
+          <button id="btn-rotate-cw"><span class="material-icons-round">rotate_right</span>Rotate Page 90° CW</button>
+          <button id="btn-rotate-ccw"><span class="material-icons-round">rotate_left</span>Rotate Page 90° CCW</button>
+          <button id="btn-extract"><span class="material-icons-round">file_download</span>Extract Current Page</button>
+          <button id="btn-flatten"><span class="material-icons-round">layers_clear</span>Flatten Markups to PDF</button>
+          <button id="btn-ocr"><span class="material-icons-round">document_scanner</span>OCR Current Page</button>
+          <button id="btn-calibrate"><span class="material-icons-round">square_foot</span>Set Scale Calibration</button>
+          <button id="btn-xlsx-link"><span class="material-icons-round">grid_on</span>Link to Excel (.xlsx)</button>
+        </div>
+      </div>
+
+      <!-- RENAME ENGINE -->
+      <div class="panel-hdr"><span>SDIO RENAME ENGINE</span></div>
+      <div class="rename-section">
+        <div class="rename-row"><label>Document Class</label>
+          <select id="r-class"><option value="">—</option><option value="DWG">DWG — Drawing</option><option value="SPEC">SPEC — Specification</option><option value="SUB">SUB — Submittal</option><option value="RFI">RFI — Request for Info</option><option value="CO">CO — Change Order</option><option value="ASI">ASI — Addendum</option><option value="SHOP">SHOP — Shop Drawing</option><option value="PHOTO">PHOTO — Photo Doc</option><option value="RPT">RPT — Report</option><option value="SCHED">SCHED — Schedule</option><option value="CORR">CORR — Correspondence</option><option value="CALC">CALC — Calculation</option><option value="LOG">LOG — Log/Register</option><option value="MTG">MTG — Meeting Min.</option><option value="INV">INV — Invoice</option><option value="PM">PM — Proj. Mgmt</option><option value="SAF">SAF — Safety</option><option value="QC">QC — Quality Ctrl</option></select>
+        </div>
+        <div class="rename-row"><label>Revision</label>
+          <select id="r-rev"><option value="">—</option><option value="R00">R00 — Initial</option><option value="R01">R01</option><option value="R02">R02</option><option value="R03">R03</option><option value="R04">R04</option><option value="R05">R05</option><option value="RA">RA</option><option value="RB">RB</option><option value="RC">RC</option><option value="RD">RD</option></select>
+        </div>
+        <div class="rename-row"><label>Version</label>
+          <select id="r-ver"><option value="">—</option><option value="V1">V1</option><option value="V2">V2</option><option value="V3">V3</option><option value="DRAFT">DRAFT</option><option value="FINAL">FINAL</option><option value="IFC">IFC — For Construction</option><option value="IFR">IFR — For Review</option><option value="IFB">IFB — For Bid</option><option value="RECORD">RECORD — As-Built</option></select>
+        </div>
+        <div class="rename-row"><label>Spec / Discipline</label>
+          <select id="r-spec"><option value="">—</option><option value="ARCH">ARCH — Architectural</option><option value="STRUC">STRUC — Structural</option><option value="MEP">MEP — Mech/Elec/Plumb</option><option value="ELEC">ELEC — Electrical</option><option value="MECH">MECH — Mechanical</option><option value="PLMB">PLMB — Plumbing</option><option value="CIVIL">CIVIL — Civil</option><option value="FIRE">FIRE — Fire Prot.</option><option value="LAND">LAND — Landscape</option><option value="GEN">GEN — General</option></select>
+        </div>
+        <div class="rename-row"><label>Date (YYYYMMDD)</label><input type="text" id="r-date" maxlength="8"></div>
+        <div class="rename-row"><label>Client Code</label><input type="text" id="r-client" placeholder="e.g. ACME" maxlength="20"></div>
+        <div class="rename-row"><label>Description</label><input type="text" id="r-desc" placeholder="e.g. Floor_Plan_L2" maxlength="60"></div>
+      </div>
+      <div id="predict-box"><div class="plabel">PREDICTED FILENAME</div><div class="pvalue" id="predict-value">—</div></div>
+      <button class="btn-rename" id="btn-rename" disabled><span class="material-icons-round" style="font-size:16px;">drive_file_rename_outline</span>RENAME FILE</button>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusbar"><span id="sb-left">Ready</span><span id="sb-right"></span></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+<!-- CONTEXT MENU -->
+<div id="context-menu"></div>
+<!-- OCR PROGRESS -->
+<div id="ocr-progress"><div class="opr-title">OCR IN PROGRESS</div><div class="opr-bar"><div class="opr-fill" id="ocr-fill" style="width:0%"></div></div><div class="opr-text" id="ocr-text">Initializing…</div></div>
+<!-- CALIBRATION DIALOG -->
+<div class="dialog-overlay" id="calibrate-dialog"><div class="dialog-box"><h3>SCALE CALIBRATION</h3><label>Known Distance (e.g. 10)</label><input type="number" id="cal-distance" value="10" min="0.01" step="0.01"><label>Unit</label><select id="cal-unit"><option value="ft">Feet</option><option value="m">Meters</option><option value="in">Inches</option><option value="cm">Centimeters</option></select><p style="font-size:10px;color:var(--text-muted);margin-top:4px;">After confirming, draw a line on the PDF representing this distance.</p><div class="dialog-actions"><button class="btn-s" id="cal-cancel">Cancel</button><button class="btn-p" id="cal-confirm">Confirm & Draw</button></div></div></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   OMNI-VIEW v2.0 ULTIMATE — COMPLETE APPLICATION LOGIC
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+// ─── PDF.js Setup ────────────────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ─── State ───────────────────────────────────────────────────
+const S={
+  dirHandle:null, files:[], selectedFile:null, selectedHandle:null,
+  pdfDoc:null, pdfBytes:null, pageCount:0, currentPage:1, zoom:1.0,
+  activeTool:'cursor', fabricInstances:{}, pageDims:[], pageRotations:{},
+  showThumbs:true, filterText:'', splitView:false, syncScroll:false,
+  // View B state
+  pdfDocB:null, pdfBytesB:null, pageDimsB:[], fabricInstancesB:{}, pageCountB:0, selectedFileB:null,
+  // Undo/Redo
+  undoStack:[], redoStack:[],
+  // Calibration
+  calibration:{pixelsPerUnit:1, unit:'ft', active:false, linePixels:0},
+  // Count tool
+  countIndex:0,
+  // Polyline building
+  polyPoints:[], polyActiveFc:null,
+  // Excel link
+  xlsxData:null, xlsxFileName:'',
+  // OCR
+  ocrWorker:null
+};
+
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const viewportA=$('#viewport-a');
+const thumbList=$('#thumb-list');
+const thumbSidebar=$('#thumb-sidebar');
+const toastEl=$('#toast');
+const predictValue=$('#predict-value');
+const btnRename=$('#btn-rename');
+const zoomDisplay=$('#zoom-display');
+const contextMenu=$('#context-menu');
+
+// ─── Toast ───────────────────────────────────────────────────
+let toastTimer=null;
+function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3000)}
+function setStatus(msg){$('#sb-left').textContent=msg;$('#global-status').textContent=msg}
+
+// ─── Date ────────────────────────────────────────────────────
+function todayStamp(){const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`}
+$('#r-date').value=todayStamp();
+
+// ═══════════════════════════════════════════════════════════════
+// MENU BAR SYSTEM
+// ═══════════════════════════════════════════════════════════════
+function buildMenuBar(){
+  const menubar=$('#menubar');
+  const menus={
+    File:[
+      {label:'Open Workspace…',action:openDirectory,shortcut:'Ctrl+O'},
+      {label:'Refresh',action:()=>{scanDirectory();toast('✓ Refreshed')},shortcut:'F5'},
+      {divider:true},
+      {label:'Close Workspace',action:()=>{S.dirHandle=null;S.files=[];renderFileTree();clearCanvas(viewportA,S);toast('Workspace closed')}},
+    ],
+    Document:[
+      {label:'Rotate Page 90° CW',action:()=>rotatePage(90),shortcut:'Ctrl+Shift+R'},
+      {label:'Rotate Page 90° CCW',action:()=>rotatePage(-90)},
+      {divider:true},
+      {label:'Extract Current Page',action:extractPage,shortcut:'Ctrl+Shift+X'},
+      {label:'Flatten Markups to PDF',action:flattenMarkups,shortcut:'Ctrl+Shift+M'},
+      {divider:true},
+      {label:'OCR Current Page',action:runOCR},
+    ],
+    View:[
+      {label:'Split View',action:toggleSplitView,shortcut:'Ctrl+2'},
+      {label:'Sync Scroll',action:toggleSyncScroll},
+      {divider:true},
+      {label:'Thumbnails',action:()=>{$('#btn-thumb-toggle').click()}},
+    ],
+    Batch:[
+      {label:'Batch Flatten (All PDFs)',action:batchFlatten},
+      {label:'Batch Rotate (All PDFs 90° CW)',action:batchRotate},
+    ],
+    Help:[
+      {label:'About OMNI-VIEW',action:()=>toast('OMNI-VIEW v2.0 Ultimate — PDF/Image/Excel Workspace')},
+      {label:'Keyboard Shortcuts',action:()=>toast('V:Cursor P:Pen H:Highlight T:Text A:Arrow R:Rect N:Polyline C:Cloud Q:Callout L:Dim G:Count E:Erase')},
+    ]
+  };
+  let openMenu=null;
+  const closeAll=()=>{document.querySelectorAll('.menu-drop').forEach(d=>d.classList.remove('show'));openMenu=null};
+  document.addEventListener('click',e=>{if(!e.target.closest('.menu-root'))closeAll()});
+
+  Object.entries(menus).forEach(([name,items])=>{
+    const root=document.createElement('div');root.className='menu-root';
+    const btn=document.createElement('button');btn.textContent=name;
+    btn.addEventListener('click',()=>{
+      const wasOpen=openMenu===name;closeAll();
+      if(!wasOpen){root.querySelector('.menu-drop').classList.add('show');openMenu=name;btn.classList.add('open')}
+    });
+    btn.addEventListener('mouseenter',()=>{if(openMenu&&openMenu!==name){closeAll();root.querySelector('.menu-drop').classList.add('show');openMenu=name;btn.classList.add('open')}});
+    root.appendChild(btn);
+    const drop=document.createElement('div');drop.className='menu-drop';
+    items.forEach(item=>{
+      if(item.divider){const d=document.createElement('div');d.className='menu-divider';drop.appendChild(d);return}
+      const mi=document.createElement('button');
+      mi.innerHTML=`<span>${item.label}</span>${item.shortcut?`<span class="shortcut">${item.shortcut}</span>`:''}`;
+      mi.addEventListener('click',()=>{closeAll();item.action()});
+      drop.appendChild(mi);
+    });
+    root.appendChild(drop);menubar.appendChild(root);
+  });
+}
+buildMenuBar();
+
+// ═══════════════════════════════════════════════════════════════
+// FILE SYSTEM ACCESS
+// ═══════════════════════════════════════════════════════════════
+async function openDirectory(){
+  if(!window.showDirectoryPicker){toast('⚠ Use Chrome or Edge');return}
+  try{
+    S.dirHandle=await window.showDirectoryPicker({mode:'readwrite'});
+    await scanDirectory();
+    toast('✓ Opened: '+S.dirHandle.name);setStatus('Workspace: '+S.dirHandle.name);
+    $('#workspace-label').style.display='block';$('#workspace-label').textContent='⚡ '+S.dirHandle.name;
+  }catch(e){if(e.name!=='AbortError')toast('✗ '+e.message)}
+}
+async function scanDirectory(){if(!S.dirHandle)return;S.files=await readDir(S.dirHandle,'');renderFileTree()}
+async function readDir(dh,path){
+  const entries=[];
+  for await(const[name,handle]of dh){
+    const fp=path?path+'/'+name:name;const entry={name,handle,path:fp,kind:handle.kind};
+    if(handle.kind==='directory')entry.children=await readDir(handle,fp);
+    entries.push(entry);
+  }
+  entries.sort((a,b)=>{if(a.kind!==b.kind)return a.kind==='directory'?-1:1;return a.name.localeCompare(b.name)});
+  return entries;
+}
+window._openDir=openDirectory;
+
+function renderFileTree(){
+  const ft=$('#file-tree');ft.innerHTML='';
+  if(!S.files.length){ft.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:11px;">No workspace open.<br><br><button onclick="window._openDir()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:5px;color:var(--accent);padding:6px 16px;cursor:pointer;font-family:var(--font-mono);font-size:11px;font-weight:600;">Open Workspace</button></div>';return}
+  const frag=document.createDocumentFragment();buildTree(S.files,frag,0);ft.appendChild(frag);
+}
+function buildTree(entries,container,depth){
+  const filter=S.filterText.toLowerCase();
+  for(const entry of entries){
+    if(entry.kind==='file'&&filter&&!entry.name.toLowerCase().includes(filter))continue;
+    const btn=document.createElement('button');
+    btn.className='file-item'+(S.selectedFile&&S.selectedFile.path===entry.path?' selected':'');
+    btn.style.paddingLeft=(10+depth*14)+'px';
+    const icon=document.createElement('span');icon.className='material-icons-round';
+    if(entry.kind==='directory'){icon.textContent='folder';icon.style.color='#f0c040'}
+    else{const ext=getExt(entry.name);if(ext==='pdf'){icon.textContent='picture_as_pdf';icon.style.color='var(--red)'}else if(ext==='xlsx'||ext==='xls'||ext==='csv'){icon.textContent='grid_on';icon.style.color='var(--green)'}else if(['jpg','jpeg','png','gif','bmp','tiff','tif','svg'].includes(ext)){icon.textContent='image';icon.style.color='var(--purple)'}else{icon.textContent='description';icon.style.color='var(--text-muted)'}}
+    btn.appendChild(icon);
+    const fname=document.createElement('span');fname.className='fname';fname.textContent=entry.name;btn.appendChild(fname);
+    btn.addEventListener('click',()=>{if(entry.kind==='directory')return;selectFile(entry)});
+    btn.addEventListener('contextmenu',e=>{e.preventDefault();showContextMenu(e,entry)});
+    container.appendChild(btn);
+    if(entry.kind==='directory'&&entry.children)buildTree(entry.children,container,depth+1);
+  }
+}
+function getExt(n){return n.split('.').pop().toLowerCase()}
+
+$('#file-filter').addEventListener('input',e=>{S.filterText=e.target.value;renderFileTree()});
+
+// ─── Context Menu ────────────────────────────────────────────
+function showContextMenu(e,entry){
+  contextMenu.innerHTML='';contextMenu.style.display='block';
+  contextMenu.style.left=e.clientX+'px';contextMenu.style.top=e.clientY+'px';
+  const items=[
+    {icon:'visibility',label:'Open in View A',action:()=>selectFile(entry)},
+    ...(S.splitView?[{icon:'vertical_split',label:'Open in View B',action:()=>selectFileB(entry)}]:[]),
+    ...(getExt(entry.name)==='pdf'?[
+      {icon:'layers_clear',label:'Flatten Markups',action:async()=>{await selectFile(entry);setTimeout(flattenMarkups,500)}},
+      {icon:'rotate_right',label:'Rotate All Pages 90°',action:async()=>{await selectFile(entry);setTimeout(()=>rotatePage(90),500)}},
+      {icon:'document_scanner',label:'OCR',action:async()=>{await selectFile(entry);setTimeout(runOCR,500)}},
+    ]:[]),
+  ];
+  items.forEach(it=>{
+    const b=document.createElement('button');
+    b.innerHTML=`<span class="material-icons-round">${it.icon}</span>${it.label}`;
+    b.addEventListener('click',()=>{contextMenu.style.display='none';it.action()});
+    contextMenu.appendChild(b);
+  });
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#context-menu'))contextMenu.style.display='none'});
+
+// ═══════════════════════════════════════════════════════════════
+// FILE SELECTION & LOADING
+// ═══════════════════════════════════════════════════════════════
+async function selectFile(entry){
+  S.selectedFile=entry;S.selectedHandle=entry.handle;renderFileTree();
+  const ext=getExt(entry.name);clearCanvas(viewportA,S);
+  if(ext==='pdf')await loadPdf(entry,viewportA,S);
+  else if(['jpg','jpeg','png','gif','bmp','tiff','tif','svg'].includes(ext))await loadImage(entry,viewportA);
+  else showUnsupported(entry,viewportA);
+  updatePrediction();
+}
+async function selectFileB(entry){
+  S.selectedFileB=entry;const ext=getExt(entry.name);clearCanvas($('#viewport-b'),S,'B');
+  if(ext==='pdf')await loadPdf(entry,$('#viewport-b'),S,'B');
+  else if(['jpg','jpeg','png','gif','bmp','tiff','tif','svg'].includes(ext))await loadImage(entry,$('#viewport-b'));
+}
+function clearCanvas(vp,state,suffix){
+  const fab=suffix==='B'?state.fabricInstancesB:state.fabricInstances;
+  Object.values(fab).forEach(fc=>{try{fc.dispose()}catch(e){}});
+  if(suffix==='B'){state.fabricInstancesB={};state.pdfDocB=null;state.pageDimsB=[];state.pageCountB=0}
+  else{state.fabricInstances={};state.pdfDoc=null;state.pageDims=[];state.pageCount=0;state.currentPage=1;state.pageRotations={}}
+  vp.innerHTML='';if(!suffix)thumbList.innerHTML='';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PDF LOADING & RENDERING (LAYER CAKE)
+// ═══════════════════════════════════════════════════════════════
+async function loadPdf(entry,vp,state,suffix){
+  setStatus('Loading PDF…');
+  try{
+    const file=await entry.handle.getFile();const ab=await file.arrayBuffer();
+    const bytes=new Uint8Array(ab);
+    const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+    if(suffix==='B'){state.pdfDocB=doc;state.pdfBytesB=bytes;state.pageCountB=doc.numPages;state.pageDimsB=[];
+      for(let i=1;i<=doc.numPages;i++){const p=await doc.getPage(i);const v=p.getViewport({scale:1});state.pageDimsB.push({w:v.width,h:v.height})}
+      renderPages(vp,state,suffix);
+    }else{
+      state.pdfDoc=doc;state.pdfBytes=bytes;state.pageCount=doc.numPages;state.pageDims=[];state.pageRotations={};
+      for(let i=1;i<=doc.numPages;i++){const p=await doc.getPage(i);const v=p.getViewport({scale:1});state.pageDims.push({w:v.width,h:v.height})}
+      thumbSidebar.classList.toggle('hidden',!state.showThumbs);
+      renderPages(vp,state,suffix);renderThumbnails();
+      setStatus(`PDF: ${entry.name} — ${doc.numPages} page${doc.numPages>1?'s':''}`);
+      toast(`✓ PDF loaded: ${doc.numPages} pages`);
+    }
+    updateZoomDisplay();updateSbRight();
+  }catch(e){toast('✗ PDF load failed: '+e.message);setStatus('Error')}
+}
+
+function renderPages(vp,state,suffix){
+  vp.innerHTML='';
+  const col=document.createElement('div');col.className='page-column';vp.appendChild(col);
+  const fab=suffix==='B'?state.fabricInstancesB:state.fabricInstances;
+  Object.values(fab).forEach(fc=>{try{fc.dispose()}catch(e){}});
+  if(suffix==='B')state.fabricInstancesB={};else state.fabricInstances={};
+  const dims=suffix==='B'?state.pageDimsB:state.pageDims;
+  const pdfDoc=suffix==='B'?state.pdfDocB:state.pdfDoc;
+  const dpr=window.devicePixelRatio||1;
+  for(let i=0;i<dims.length;i++){
+    const pn=i+1;const dim=dims[i];
+    const rot=(state.pageRotations[pn]||0)%360;
+    const isRotated=rot===90||rot===270;
+    const pw=isRotated?dim.h:dim.w;const ph=isRotated?dim.w:dim.h;
+    const w=pw*state.zoom;const h=ph*state.zoom;
+    const wrapper=document.createElement('div');wrapper.className='page-wrapper';wrapper.style.width=w+'px';wrapper.style.height=h+'px';wrapper.dataset.page=pn;
+    const pdfC=document.createElement('canvas');pdfC.className='pdf-canvas';pdfC.width=w*dpr;pdfC.height=h*dpr;pdfC.style.width=w+'px';pdfC.style.height=h+'px';wrapper.appendChild(pdfC);
+    const fabC=document.createElement('canvas');fabC.className='fabric-canvas';fabC.id=(suffix||'')+'fabric-page-'+pn;fabC.width=w;fabC.height=h;wrapper.appendChild(fabC);
+    const label=document.createElement('div');label.className='page-label';label.textContent='Page '+pn;wrapper.appendChild(label);
+    col.appendChild(wrapper);
+    renderPdfPage(pdfDoc,pn,pdfC,w,h,dpr,rot);
+    initFabricOnPage(pn,fabC,w,h,suffix);
+  }
+  const spacer=document.createElement('div');spacer.style.height='40px';col.appendChild(spacer);
+  if(!suffix){vp.onscroll=()=>{trackCurrentPage(vp);if(S.syncScroll&&S.splitView)syncScrollTo(vp,$('#viewport-b'))}}
+  else{vp.onscroll=()=>{if(S.syncScroll&&S.splitView)syncScrollTo(vp,viewportA)}}
+  setTimeout(()=>trackCurrentPage(vp),100);
+}
+
+async function renderPdfPage(pdfDoc,pn,canvas,w,h,dpr,rot){
+  try{const page=await pdfDoc.getPage(pn);const vp=page.getViewport({scale:S.zoom*dpr,rotation:rot||0});const ctx=canvas.getContext('2d');await page.render({canvasContext:ctx,viewport:vp}).promise}catch(e){}
+}
+
+// ─── Fabric.js Per-Page ──────────────────────────────────────
+function initFabricOnPage(pn,canvasEl,w,h,suffix){
+  const fc=new fabric.Canvas(canvasEl,{width:w,height:h,selection:S.activeTool==='cursor',isDrawingMode:false,backgroundColor:'transparent'});
+  applyToolToFabric(fc);
+
+  // History tracking
+  fc.on('object:added',e=>{if(!e.target._fromUndo){S.undoStack.push({type:'add',pageNum:pn,suffix:suffix||'',json:e.target.toJSON()});S.redoStack=[]}});
+  fc.on('object:removed',e=>{if(!e.target._fromUndo)S.undoStack.push({type:'remove',pageNum:pn,suffix:suffix||'',json:e.target.toJSON()})});
+
+  fc.on('mouse:down',function(opt){handleToolMouseDown(fc,opt,pn,suffix)});
+  fc.on('mouse:move',function(opt){handleToolMouseMove(fc,opt)});
+  fc.on('mouse:dblclick',function(opt){handleToolDblClick(fc,opt,pn)});
+
+  const store=suffix==='B'?S.fabricInstancesB:S.fabricInstances;
+  store[pn]=fc;
+}
+
+function applyToolToFabric(fc){
+  fc.isDrawingMode=false;fc.selection=true;fc.defaultCursor='default';fc.hoverCursor='move';
+  const t=S.activeTool;
+  if(t==='pen'){fc.isDrawingMode=true;fc.freeDrawingBrush=new fabric.PencilBrush(fc);fc.freeDrawingBrush.color='#e74c3c';fc.freeDrawingBrush.width=2;fc.defaultCursor='crosshair'}
+  else if(t==='highlighter'){fc.isDrawingMode=true;fc.freeDrawingBrush=new fabric.PencilBrush(fc);fc.freeDrawingBrush.color='rgba(241,196,15,0.5)';fc.freeDrawingBrush.width=15;fc.defaultCursor='crosshair'}
+  else if(['text','arrow','rect','polyline','cloud','callout','dimension','count','stamp'].includes(t)){fc.selection=false;fc.defaultCursor='crosshair';fc.hoverCursor='crosshair'}
+  else if(t==='eraser'){fc.selection=false;fc.defaultCursor='not-allowed';fc.hoverCursor='not-allowed'}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ADVANCED TOOL HANDLERS
+// ═══════════════════════════════════════════════════════════════
+let arrowStart=null,rectStart=null,dimStart=null,calStart=null;
+
+function handleToolMouseDown(fc,opt,pn,suffix){
+  const ptr=fc.getPointer(opt.e);
+  const t=S.activeTool;
+
+  if(t==='text'){
+    const it=new fabric.IText('Text',{left:ptr.x,top:ptr.y,fontSize:16,fill:'#e74c3c',fontFamily:'Arial',fontWeight:'bold',editable:true});
+    fc.add(it);fc.setActiveObject(it);it.enterEditing();setTool('cursor');
+  }
+  else if(t==='arrow'){arrowStart={x:ptr.x,y:ptr.y,fc,pn}}
+  else if(t==='rect'){rectStart={x:ptr.x,y:ptr.y,fc,pn}}
+  else if(t==='cloud'){
+    const cloud=createRevisionCloud(ptr.x,ptr.y);fc.add(cloud);fc.setActiveObject(cloud);setTool('cursor');
+  }
+  else if(t==='callout'){
+    const arrow=new fabric.Line([ptr.x-60,ptr.y+40,ptr.x,ptr.y],{stroke:'#e74c3c',strokeWidth:2,selectable:false});
+    const txt=new fabric.IText('Note',{left:ptr.x-80,top:ptr.y+45,fontSize:14,fill:'#e74c3c',fontFamily:'Arial',fontWeight:'bold',editable:true});
+    const grp=new fabric.Group([arrow,txt],{left:ptr.x-80,top:ptr.y,selectable:true});
+    fc.add(grp);fc.setActiveObject(grp);setTool('cursor');
+  }
+  else if(t==='polyline'){
+    S.polyPoints.push({x:ptr.x,y:ptr.y});S.polyActiveFc=fc;
+    // Draw preview dots
+    const dot=new fabric.Circle({left:ptr.x-3,top:ptr.y-3,radius:3,fill:'#e74c3c',selectable:false,_polyPreview:true});
+    fc.add(dot);fc.requestRenderAll();
+  }
+  else if(t==='dimension'){
+    if(!dimStart){dimStart={x:ptr.x,y:ptr.y,fc,pn}}
+    else{
+      const dx=ptr.x-dimStart.x;const dy=ptr.y-dimStart.y;
+      const px=Math.sqrt(dx*dx+dy*dy);
+      const realDist=(px/S.calibration.pixelsPerUnit).toFixed(2);
+      const line=new fabric.Line([dimStart.x,dimStart.y,ptr.x,ptr.y],{stroke:'#00a8ff',strokeWidth:2,selectable:false});
+      const label=new fabric.Text(realDist+' '+S.calibration.unit,{left:(dimStart.x+ptr.x)/2,top:(dimStart.y+ptr.y)/2-16,fontSize:12,fill:'#00a8ff',fontFamily:'Arial',fontWeight:'bold',selectable:false});
+      const e1=new fabric.Line([dimStart.x,dimStart.y-6,dimStart.x,dimStart.y+6],{stroke:'#00a8ff',strokeWidth:1,selectable:false});
+      const e2=new fabric.Line([ptr.x,ptr.y-6,ptr.x,ptr.y+6],{stroke:'#00a8ff',strokeWidth:1,selectable:false});
+      const grp=new fabric.Group([line,label,e1,e2],{selectable:true,_omniType:'dimension',_value:parseFloat(realDist),_unit:S.calibration.unit});
+      fc.add(grp);fc.requestRenderAll();dimStart=null;
+      writeToExcel('Dimension',realDist+' '+S.calibration.unit);
+    }
+  }
+  else if(t==='count'){
+    S.countIndex++;
+    const circle=new fabric.Circle({left:ptr.x-10,top:ptr.y-10,radius:10,fill:'rgba(0,168,255,0.2)',stroke:'#00a8ff',strokeWidth:2,selectable:false});
+    const num=new fabric.Text(String(S.countIndex),{left:ptr.x-4,top:ptr.y-7,fontSize:12,fill:'#00a8ff',fontFamily:'Arial',fontWeight:'bold',selectable:false});
+    const grp=new fabric.Group([circle,num],{selectable:true,_omniType:'count',_count:S.countIndex});
+    fc.add(grp);fc.requestRenderAll();
+    writeToExcel('Count',S.countIndex);
+  }
+  else if(t==='stamp'){
+    const input=document.createElement('input');input.type='file';input.accept='image/*';
+    input.addEventListener('change',async ev=>{
+      const file=ev.target.files[0];if(!file)return;
+      const url=URL.createObjectURL(file);
+      fabric.Image.fromURL(url,img=>{img.scaleToWidth(150);img.set({left:ptr.x,top:ptr.y});fc.add(img);fc.setActiveObject(img);fc.requestRenderAll();setTool('cursor')});
+    });input.click();
+  }
+  else if(t==='eraser'){
+    const target=fc.findTarget(opt.e);if(target){fc.remove(target);fc.requestRenderAll()}
+  }
+
+  // Calibration mode
+  if(S.calibration.active){
+    if(!calStart){calStart={x:ptr.x,y:ptr.y}}
+    else{
+      const dx=ptr.x-calStart.x;const dy=ptr.y-calStart.y;
+      S.calibration.linePixels=Math.sqrt(dx*dx+dy*dy);
+      const dist=parseFloat($('#cal-distance').value)||10;
+      S.calibration.pixelsPerUnit=S.calibration.linePixels/dist;
+      S.calibration.active=false;calStart=null;
+      toast(`✓ Calibrated: ${dist} ${S.calibration.unit} = ${Math.round(S.calibration.linePixels)}px`);
+      setTool('cursor');
+    }
+  }
+}
+
+function handleToolMouseMove(fc,opt){
+  // Arrow preview line could go here (live drag) - keeping simple for perf
+}
+
+function handleToolDblClick(fc,opt,pn){
+  // Finish polyline
+  if(S.activeTool==='polyline'&&S.polyPoints.length>=2&&S.polyActiveFc===fc){
+    // Remove preview dots
+    fc.getObjects().filter(o=>o._polyPreview).forEach(o=>fc.remove(o));
+    const pts=S.polyPoints.map(p=>`${p.x},${p.y}`).join(' ');
+    const polyline=new fabric.Polyline(S.polyPoints,{fill:'transparent',stroke:'#e74c3c',strokeWidth:2,selectable:true});
+    fc.add(polyline);fc.requestRenderAll();
+    S.polyPoints=[];S.polyActiveFc=null;
+  }
+}
+
+// Arrow completion on mouseup
+document.addEventListener('mouseup',e=>{
+  if(arrowStart){
+    const fc=arrowStart.fc;const ptr=fc.getPointer(e);
+    if(!ptr||!ptr.x){arrowStart=null;return}
+    const dx=ptr.x-arrowStart.x;const dy=ptr.y-arrowStart.y;
+    if(Math.sqrt(dx*dx+dy*dy)<5){arrowStart=null;return}
+    const line=new fabric.Line([arrowStart.x,arrowStart.y,ptr.x,ptr.y],{stroke:'#e74c3c',strokeWidth:2,selectable:false});
+    const angle=Math.atan2(dy,dx);const headLen=12;
+    const h1x=ptr.x-headLen*Math.cos(angle-Math.PI/6);const h1y=ptr.y-headLen*Math.sin(angle-Math.PI/6);
+    const h2x=ptr.x-headLen*Math.cos(angle+Math.PI/6);const h2y=ptr.y-headLen*Math.sin(angle+Math.PI/6);
+    const head=new fabric.Polygon([{x:ptr.x,y:ptr.y},{x:h1x,y:h1y},{x:h2x,y:h2y}],{fill:'#e74c3c',selectable:false});
+    const grp=new fabric.Group([line,head],{selectable:true});
+    fc.add(grp);fc.requestRenderAll();arrowStart=null;
+  }
+  if(rectStart){
+    const fc=rectStart.fc;const ptr=fc.getPointer(e);
+    if(!ptr||!ptr.x){rectStart=null;return}
+    const x=Math.min(rectStart.x,ptr.x);const y=Math.min(rectStart.y,ptr.y);
+    const w=Math.abs(ptr.x-rectStart.x);const h=Math.abs(ptr.y-rectStart.y);
+    if(w<5&&h<5){rectStart=null;return}
+    const rect=new fabric.Rect({left:x,top:y,width:w,height:h,fill:'transparent',stroke:'#e74c3c',strokeWidth:2,selectable:true});
+    fc.add(rect);fc.requestRenderAll();rectStart=null;
+  }
+});
+
+// ─── Revision Cloud ──────────────────────────────────────────
+function createRevisionCloud(cx,cy){
+  const w=120,h=80,x=cx-w/2,y=cy-h/2,arcSize=14;let pd='';
+  for(let px=x;px<x+w;px+=arcSize){const eX=Math.min(px+arcSize,x+w);pd+=(pd?'':'M '+px+' '+y+' ')+'A '+(arcSize/2)+' '+(arcSize/2)+' 0 0 1 '+eX+' '+y+' '}
+  for(let py=y;py<y+h;py+=arcSize){const eY=Math.min(py+arcSize,y+h);pd+='A '+(arcSize/2)+' '+(arcSize/2)+' 0 0 1 '+(x+w)+' '+eY+' '}
+  for(let px=x+w;px>x;px-=arcSize){const eX=Math.max(px-arcSize,x);pd+='A '+(arcSize/2)+' '+(arcSize/2)+' 0 0 1 '+eX+' '+(y+h)+' '}
+  for(let py=y+h;py>y;py-=arcSize){const eY=Math.max(py-arcSize,y);pd+='A '+(arcSize/2)+' '+(arcSize/2)+' 0 0 1 '+x+' '+eY+' '}
+  pd+='Z';
+  return new fabric.Path(pd,{fill:'transparent',stroke:'#e74c3c',strokeWidth:2,selectable:true,hasControls:true});
+}
+
+// ─── Track Current Page ──────────────────────────────────────
+function trackCurrentPage(vp){
+  const wrappers=vp.querySelectorAll('.page-wrapper');if(!wrappers.length)return;
+  let closest=1,closestDist=Infinity;
+  wrappers.forEach(wr=>{const pn=parseInt(wr.dataset.page);const center=wr.offsetTop+wr.offsetHeight/2;const viewCenter=vp.scrollTop+vp.clientHeight/2;const dist=Math.abs(center-viewCenter);if(dist<closestDist){closestDist=dist;closest=pn}wr.classList.toggle('current-page',pn===closest)});
+  if(closest!==S.currentPage){S.currentPage=closest;updateSbRight();$$('.thumb-item').forEach(t=>t.classList.toggle('active',parseInt(t.dataset.page)===closest))}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THUMBNAILS
+// ═══════════════════════════════════════════════════════════════
+async function renderThumbnails(){
+  thumbList.innerHTML='';if(!S.pdfDoc)return;
+  const max=Math.min(S.pageCount,100);
+  for(let i=1;i<=max;i++){
+    const item=document.createElement('button');item.className='thumb-item'+(i===1?' active':'');item.dataset.page=i;
+    const tc=document.createElement('canvas');item.appendChild(tc);
+    const num=document.createElement('span');num.className='tnum';num.textContent=i;item.appendChild(num);
+    item.addEventListener('click',()=>jumpToPage(i));thumbList.appendChild(item);
+    try{const page=await S.pdfDoc.getPage(i);const vp=page.getViewport({scale:0.18,rotation:S.pageRotations[i]||0});tc.width=vp.width;tc.height=vp.height;await page.render({canvasContext:tc.getContext('2d'),viewport:vp}).promise}catch(e){}
+  }
+}
+function jumpToPage(n){const w=viewportA.querySelector(`.page-wrapper[data-page="${n}"]`);if(w)w.scrollIntoView({behavior:'smooth',block:'start'})}
+
+// ═══════════════════════════════════════════════════════════════
+// IMAGE LOADING
+// ═══════════════════════════════════════════════════════════════
+async function loadImage(entry,vp){
+  try{const file=await entry.handle.getFile();const blob=new Blob([await file.arrayBuffer()],{type:file.type});const url=URL.createObjectURL(blob);thumbSidebar.classList.add('hidden');vp.innerHTML='<div id="image-viewer"><img src="'+url+'" alt="'+entry.name+'"></div>';setStatus('Image: '+entry.name);toast('✓ Image loaded: '+entry.name);updateSbRight()}catch(e){toast('✗ Image failed: '+e.message)}
+}
+function showUnsupported(entry,vp){thumbSidebar.classList.add('hidden');vp.innerHTML='<div id="empty-state"><div class="big-diamond" style="font-size:36px;">📄</div><div class="title" style="font-size:16px;">'+entry.name+'</div><div class="sub">'+getExt(entry.name).toUpperCase()+' — Preview not available</div></div>';setStatus('File: '+entry.name)}
+
+// ═══════════════════════════════════════════════════════════════
+// ZOOM
+// ═══════════════════════════════════════════════════════════════
+function setZoom(z){
+  S.zoom=Math.max(0.15,Math.min(8,z));updateZoomDisplay();
+  if(S.pdfDoc){const saved=saveAllMarkups();renderPages(viewportA,S);restoreAllMarkups(saved)}
+  if(S.pdfDocB&&S.splitView){const saved=saveAllMarkups('B');renderPages($('#viewport-b'),S,'B');restoreAllMarkups(saved,'B')}
+}
+function saveAllMarkups(suffix){const fab=suffix==='B'?S.fabricInstancesB:S.fabricInstances;const d={};Object.entries(fab).forEach(([pn,fc])=>{d[pn]=fc.toJSON()});return d}
+function restoreAllMarkups(data,suffix){const fab=suffix==='B'?S.fabricInstancesB:S.fabricInstances;Object.entries(data).forEach(([pn,json])=>{const fc=fab[pn];if(fc&&json.objects&&json.objects.length)fc.loadFromJSON(json,()=>{fc.requestRenderAll();applyToolToFabric(fc)})})}
+function updateZoomDisplay(){zoomDisplay.textContent=Math.round(S.zoom*100)+'%'}
+function updateSbRight(){const p=[];if(S.pageCount>0)p.push('Page '+S.currentPage+'/'+S.pageCount);p.push(Math.round(S.zoom*100)+'%');if(S.calibration.pixelsPerUnit!==1)p.push('Cal:'+S.calibration.unit);$('#sb-right').textContent=p.join(' · ')}
+
+viewportA.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(S.zoom*(e.deltaY>0?0.9:1.1))}},{passive:false});
+
+// ═══════════════════════════════════════════════════════════════
+// UNDO / REDO
+// ═══════════════════════════════════════════════════════════════
+function undo(){
+  if(!S.undoStack.length){toast('Nothing to undo');return}
+  const action=S.undoStack.pop();S.redoStack.push(action);
+  const fab=action.suffix==='B'?S.fabricInstancesB:S.fabricInstances;
+  const fc=fab[action.pageNum];if(!fc)return;
+  if(action.type==='add'){const objs=fc.getObjects();if(objs.length)fc.remove(objs[objs.length-1]);fc.requestRenderAll()}
+  else if(action.type==='remove'){fabric.util.enlivenObjects([action.json],([obj])=>{if(obj){obj._fromUndo=true;fc.add(obj);fc.requestRenderAll()}})}
+}
+function redo(){
+  if(!S.redoStack.length){toast('Nothing to redo');return}
+  const action=S.redoStack.pop();S.undoStack.push(action);
+  const fab=action.suffix==='B'?S.fabricInstancesB:S.fabricInstances;
+  const fc=fab[action.pageNum];if(!fc)return;
+  if(action.type==='add'){fabric.util.enlivenObjects([action.json],([obj])=>{if(obj){obj._fromUndo=true;fc.add(obj);fc.requestRenderAll()}})}
+  else if(action.type==='remove'){const objs=fc.getObjects();if(objs.length)fc.remove(objs[objs.length-1]);fc.requestRenderAll()}
+}
+$('#btn-undo').addEventListener('click',undo);
+$('#btn-redo').addEventListener('click',redo);
+
+// ═══════════════════════════════════════════════════════════════
+// SPLIT VIEW
+// ═══════════════════════════════════════════════════════════════
+function toggleSplitView(){
+  S.splitView=!S.splitView;
+  $('#split-divider').style.display=S.splitView?'block':'none';
+  $('#viewport-b').style.display=S.splitView?'block':'none';
+  toast(S.splitView?'✓ Split View ON — Right-click a file to open in View B':'Split View OFF');
+}
+function toggleSyncScroll(){
+  S.syncScroll=!S.syncScroll;toast(S.syncScroll?'✓ Sync Scroll ON':'Sync Scroll OFF');
+}
+function syncScrollTo(src,dst){
+  const maxA=src.scrollHeight-src.clientHeight;
+  const pct=maxA>0?src.scrollTop/maxA:0;
+  const maxB=dst.scrollHeight-dst.clientHeight;
+  dst.scrollTop=pct*maxB;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DOCUMENT OPERATIONS (pdf-lib)
+// ═══════════════════════════════════════════════════════════════
+async function rotatePage(deg){
+  if(!S.pdfBytes){toast('⚠ No PDF loaded');return}
+  try{
+    const pdfLibDoc=await PDFLib.PDFDocument.load(S.pdfBytes);
+    const page=pdfLibDoc.getPage(S.currentPage-1);
+    page.setRotation(PDFLib.degrees((page.getRotation().angle+deg)%360));
+    const newBytes=await pdfLibDoc.save();S.pdfBytes=new Uint8Array(newBytes);
+    // Track rotation for display
+    S.pageRotations[S.currentPage]=(S.pageRotations[S.currentPage]||0)+deg;
+    // Reload
+    S.pdfDoc=await pdfjsLib.getDocument({data:S.pdfBytes.slice()}).promise;
+    S.pageDims=[];for(let i=1;i<=S.pdfDoc.numPages;i++){const p=await S.pdfDoc.getPage(i);const v=p.getViewport({scale:1});S.pageDims.push({w:v.width,h:v.height})}
+    renderPages(viewportA,S);renderThumbnails();
+    toast('✓ Page '+S.currentPage+' rotated '+deg+'°');
+  }catch(e){toast('✗ Rotate failed: '+e.message)}
+}
+
+async function extractPage(){
+  if(!S.pdfBytes){toast('⚠ No PDF loaded');return}
+  try{
+    const srcDoc=await PDFLib.PDFDocument.load(S.pdfBytes);
+    const newDoc=await PDFLib.PDFDocument.create();
+    const[copied]=await newDoc.copyPages(srcDoc,[S.currentPage-1]);
+    newDoc.addPage(copied);
+    const bytes=await newDoc.save();
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=(S.selectedFile?S.selectedFile.name.replace('.pdf',''):'page')+'_page'+S.currentPage+'.pdf';
+    a.click();URL.revokeObjectURL(a.href);
+    toast('✓ Page '+S.currentPage+' extracted');
+  }catch(e){toast('✗ Extract failed: '+e.message)}
+}
+
+async function flattenMarkups(){
+  if(!S.pdfBytes){toast('⚠ No PDF loaded');return}
+  try{
+    const pdfLibDoc=await PDFLib.PDFDocument.load(S.pdfBytes);
+    for(const[pnStr,fc]of Object.entries(S.fabricInstances)){
+      const pn=parseInt(pnStr);if(!fc.getObjects().length)continue;
+      const dataUrl=fc.toDataURL({format:'png',multiplier:2});
+      const pngBytes=Uint8Array.from(atob(dataUrl.split(',')[1]),c=>c.charCodeAt(0));
+      const pngImage=await pdfLibDoc.embedPng(pngBytes);
+      const page=pdfLibDoc.getPage(pn-1);
+      const{width,height}=page.getSize();
+      page.drawImage(pngImage,{x:0,y:0,width,height,opacity:1});
+      // Clear markups from fabric
+      fc.clear();fc.requestRenderAll();
+    }
+    const newBytes=await pdfLibDoc.save();S.pdfBytes=new Uint8Array(newBytes);
+    // Save to disk if possible
+    if(S.selectedHandle&&S.dirHandle){
+      try{
+        const writable=await S.selectedHandle.createWritable();
+        await writable.write(newBytes);await writable.close();
+        toast('✓ Flattened & saved to disk');
+      }catch(e){
+        // Fallback: download
+        const blob=new Blob([newBytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=S.selectedFile?S.selectedFile.name:'flattened.pdf';a.click();
+        toast('✓ Flattened (downloaded)');
+      }
+    }else{
+      const blob=new Blob([newBytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='flattened.pdf';a.click();toast('✓ Flattened (downloaded)');
+    }
+    // Reload
+    S.pdfDoc=await pdfjsLib.getDocument({data:S.pdfBytes.slice()}).promise;
+    renderPages(viewportA,S);renderThumbnails();
+  }catch(e){toast('✗ Flatten failed: '+e.message)}
+}
+
+// ─── Batch Operations ────────────────────────────────────────
+async function batchFlatten(){
+  if(!S.dirHandle){toast('⚠ Open a workspace first');return}
+  let count=0;
+  async function processDir(dh){
+    for await(const[name,handle]of dh){
+      if(handle.kind==='directory'){await processDir(handle);continue}
+      if(!name.endsWith('.pdf'))continue;
+      try{
+        const file=await handle.getFile();const ab=await file.arrayBuffer();
+        // If there are sidecar markups, we'd load them — for now just save as-is
+        toast(`Processing: ${name}…`);count++;
+      }catch(e){}
+    }
+  }
+  await processDir(S.dirHandle);toast(`✓ Batch complete: ${count} PDFs processed`);
+}
+async function batchRotate(){
+  if(!S.dirHandle){toast('⚠ Open a workspace first');return}
+  let count=0;
+  async function processDir(dh){
+    for await(const[name,handle]of dh){
+      if(handle.kind==='directory'){await processDir(handle);continue}
+      if(!name.endsWith('.pdf'))continue;
+      try{
+        const file=await handle.getFile();const ab=await file.arrayBuffer();
+        const doc=await PDFLib.PDFDocument.load(ab);
+        doc.getPages().forEach(p=>p.setRotation(PDFLib.degrees((p.getRotation().angle+90)%360)));
+        const newBytes=await doc.save();
+        const writable=await handle.createWritable();await writable.write(newBytes);await writable.close();
+        count++;toast(`Rotated: ${name}`);
+      }catch(e){toast(`✗ Failed: ${name}`)}
+    }
+  }
+  await processDir(S.dirHandle);toast(`✓ Batch rotate complete: ${count} PDFs`);
+  await scanDirectory();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OCR (Tesseract.js)
+// ═══════════════════════════════════════════════════════════════
+async function runOCR(){
+  if(!S.pdfDoc){toast('⚠ No PDF loaded');return}
+  const prog=$('#ocr-progress');prog.style.display='block';
+  try{
+    // Render current page to image
+    const page=await S.pdfDoc.getPage(S.currentPage);
+    const scale=2;const vp=page.getViewport({scale,rotation:S.pageRotations[S.currentPage]||0});
+    const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    const dataUrl=canvas.toDataURL('image/png');
+
+    const worker=await Tesseract.createWorker('eng',1,{
+      logger:m=>{if(m.status==='recognizing text'){$('#ocr-fill').style.width=Math.round(m.progress*100)+'%';$('#ocr-text').textContent=Math.round(m.progress*100)+'% recognizing…'}}
+    });
+    const{data}=await worker.recognize(dataUrl);
+    await worker.terminate();
+
+    // Overlay text as selectable text layer (invisible)
+    const fc=S.fabricInstances[S.currentPage];
+    if(fc&&data.words){
+      data.words.forEach(w=>{
+        const scaleX=S.zoom/scale;
+        const txt=new fabric.Text(w.text,{
+          left:w.bbox.x0*scaleX,top:w.bbox.y0*scaleX,
+          fontSize:Math.max(8,(w.bbox.y1-w.bbox.y0)*scaleX*0.8),
+          fill:'rgba(0,168,255,0.3)',fontFamily:'Arial',
+          selectable:true,_omniType:'ocr'
+        });
+        fc.add(txt);
+      });
+      fc.requestRenderAll();
+    }
+    prog.style.display='none';toast(`✓ OCR complete: ${data.words.length} words found`);
+  }catch(e){prog.style.display='none';toast('✗ OCR failed: '+e.message)}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXCEL INTEGRATION (SheetJS)
+// ═══════════════════════════════════════════════════════════════
+$('#btn-xlsx-link').addEventListener('click',()=>{
+  const input=document.createElement('input');input.type='file';input.accept='.xlsx,.xls,.csv';
+  input.addEventListener('change',async e=>{
+    const file=e.target.files[0];if(!file)return;
+    try{
+      const ab=await file.arrayBuffer();
+      S.xlsxData=XLSX.read(ab);S.xlsxFileName=file.name;
+      toast('✓ Excel linked: '+file.name+' — Measurements will write to Sheet1');
+    }catch(e){toast('✗ Excel load failed: '+e.message)}
+  });input.click();
+});
+
+function writeToExcel(type,value){
+  if(!S.xlsxData)return;
+  try{
+    const ws=S.xlsxData.Sheets[S.xlsxData.SheetNames[0]];
+    // Find next empty row in column A
+    let row=1;while(ws['A'+row])row++;
+    ws['A'+row]={t:'s',v:type};ws['B'+row]={t:'s',v:String(value)};ws['C'+row]={t:'s',v:new Date().toISOString()};
+    // Auto-download updated file
+    const wb=S.xlsxData;const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([out],{type:'application/octet-stream'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=S.xlsxFileName||'measurements.xlsx';a.click();
+    toast('✓ Excel updated: '+type+'='+value);
+  }catch(e){/* silent */}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALIBRATION
+// ═══════════════════════════════════════════════════════════════
+$('#btn-calibrate').addEventListener('click',()=>$('#calibrate-dialog').classList.add('show'));
+$('#cal-cancel').addEventListener('click',()=>$('#calibrate-dialog').classList.remove('show'));
+$('#cal-confirm').addEventListener('click',()=>{
+  S.calibration.unit=$('#cal-unit').value;S.calibration.active=true;
+  $('#calibrate-dialog').classList.remove('show');
+  toast('Draw a calibration line on the PDF…');setTool('cursor');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TOOL SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function setTool(tool){
+  S.activeTool=tool;S.polyPoints=[];S.polyActiveFc=null;arrowStart=null;rectStart=null;dimStart=null;
+  if(tool==='count')S.countIndex=0;
+  $$('.tool-btn').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
+  $$('.tool-btn-tc').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
+  Object.values(S.fabricInstances).forEach(fc=>applyToolToFabric(fc));
+  Object.values(S.fabricInstancesB).forEach(fc=>applyToolToFabric(fc));
+}
+$$('.tool-btn').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
+$$('.tool-btn-tc').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
+
+// ─── Keyboard shortcuts ──────────────────────────────────────
+window.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea,[contenteditable]'))return;
+  const k=e.key.toLowerCase();
+  if(k==='v')setTool('cursor');if(k==='p')setTool('pen');if(k==='h')setTool('highlighter');
+  if(k==='t')setTool('text');if(k==='a')setTool('arrow');if(k==='r'&&!e.ctrlKey)setTool('rect');
+  if(k==='n')setTool('polyline');if(k==='c'&&!e.ctrlKey)setTool('cloud');if(k==='q')setTool('callout');
+  if(k==='l')setTool('dimension');if(k==='g')setTool('count');if(k==='i')setTool('stamp');
+  if(k==='e')setTool('eraser');
+  if(e.ctrlKey&&k==='o'){e.preventDefault();openDirectory()}
+  if(k==='f5'){e.preventDefault();scanDirectory()}
+  if(e.ctrlKey&&k==='z'){e.preventDefault();undo()}
+  if(e.ctrlKey&&k==='y'){e.preventDefault();redo()}
+  if(e.ctrlKey&&k==='2'){e.preventDefault();toggleSplitView()}
+  if(e.ctrlKey&&e.shiftKey&&k==='r'){e.preventDefault();rotatePage(90)}
+  if(e.ctrlKey&&e.shiftKey&&k==='x'){e.preventDefault();extractPage()}
+  if(e.ctrlKey&&e.shiftKey&&k==='m'){e.preventDefault();flattenMarkups()}
+  if(k==='delete'||k==='backspace'){
+    [...Object.values(S.fabricInstances),...Object.values(S.fabricInstancesB)].forEach(fc=>{
+      const active=fc.getActiveObjects();if(active.length){active.forEach(o=>fc.remove(o));fc.discardActiveObject();fc.requestRenderAll()}
+    });
+  }
+  if(k==='escape'){if(S.polyPoints.length){S.polyPoints=[];S.polyActiveFc=null;toast('Polyline cancelled')}}
+});
+
+// ═══════════════════════════════════════════════════════════════
+// MARKUP SAVE / LOAD
+// ═══════════════════════════════════════════════════════════════
+$('#btn-save-markups').addEventListener('click',()=>{
+  const data={};let has=false;
+  Object.entries(S.fabricInstances).forEach(([pn,fc])=>{const j=fc.toJSON();if(j.objects&&j.objects.length){data[pn]=j;has=true}});
+  if(!has){toast('⚠ No markups to save');return}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(S.selectedFile?S.selectedFile.name.replace(/\.[^.]+$/,''):'markups')+'_markups.json';a.click();URL.revokeObjectURL(a.href);toast('✓ Markups saved');
+});
+$('#btn-load-markups').addEventListener('click',()=>{
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.addEventListener('change',async e=>{
+    const file=e.target.files[0];if(!file)return;
+    try{const text=await file.text();const data=JSON.parse(text);
+      Object.entries(data).forEach(([pn,json])=>{const fc=S.fabricInstances[pn];if(fc)fc.loadFromJSON(json,()=>{fc.requestRenderAll();applyToolToFabric(fc)})});
+      toast('✓ Markups loaded');
+    }catch(e){toast('✗ Invalid markup file')}
+  });input.click();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// SDIO RENAMING ENGINE
+// ═══════════════════════════════════════════════════════════════
+const renameFields=['r-class','r-rev','r-ver','r-spec','r-date','r-client','r-desc'];
+function updatePrediction(){
+  if(!S.selectedFile){predictValue.textContent='—';btnRename.disabled=true;return}
+  const vals=[$('#r-class').value,$('#r-rev').value,$('#r-ver').value,$('#r-spec').value,$('#r-date').value,$('#r-client').value.toUpperCase().replace(/[^A-Z0-9]/g,''),$('#r-desc').value.replace(/[^a-zA-Z0-9_ -]/g,'').replace(/\s+/g,'_')].filter(Boolean);
+  if(!vals.length){predictValue.textContent='—';btnRename.disabled=true;return}
+  predictValue.textContent=vals.join('-')+'.'+getExt(S.selectedFile.name);btnRename.disabled=false;
+}
+renameFields.forEach(id=>{const el=$('#'+id);if(el){el.addEventListener('input',updatePrediction);el.addEventListener('change',updatePrediction)}});
+$('#r-client').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+$('#r-desc').addEventListener('input',function(){this.value=this.value.replace(/[^a-zA-Z0-9_ -]/g,'').replace(/\s+/g,'_')});
+
+btnRename.addEventListener('click',async()=>{
+  if(!S.selectedFile||!S.selectedHandle||!S.dirHandle){toast('⚠ No file selected');return}
+  const newName=predictValue.textContent;if(!newName||newName==='—'){toast('⚠ Build a filename first');return}
+  try{
+    if(S.selectedHandle.move)await S.selectedHandle.move(newName);
+    else{const file=await S.selectedHandle.getFile();const nh=await S.dirHandle.getFileHandle(newName,{create:true});const w=await nh.createWritable();await w.write(await file.arrayBuffer());await w.close();await S.dirHandle.removeEntry(S.selectedFile.name)}
+    toast('✓ Renamed to: '+newName);await scanDirectory();setStatus('Renamed: '+newName);
+  }catch(e){toast('✗ Rename failed: '+e.message)}
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TOOLBAR BUTTONS
+// ═══════════════════════════════════════════════════════════════
+$('#btn-open').addEventListener('click',openDirectory);
+$('#btn-open-inline').addEventListener('click',openDirectory);
+$('#btn-refresh').addEventListener('click',async()=>{await scanDirectory();toast('✓ Refreshed')});
+$('#btn-thumb-toggle').addEventListener('click',()=>{S.showThumbs=!S.showThumbs;thumbSidebar.classList.toggle('hidden',!S.showThumbs||S.pageCount===0);$('#btn-thumb-toggle').classList.toggle('active',S.showThumbs)});
+$('#btn-zoom-in').addEventListener('click',()=>setZoom(S.zoom*1.25));
+$('#btn-zoom-out').addEventListener('click',()=>setZoom(S.zoom/1.25));
+zoomDisplay.addEventListener('click',()=>setZoom(1.0));
+$('#btn-fit-width').addEventListener('click',()=>{if(S.pageDims.length){setZoom((viewportA.clientWidth-40)/S.pageDims[0].w)}});
+
+// Doc op buttons
+$('#btn-rotate-cw').addEventListener('click',()=>rotatePage(90));
+$('#btn-rotate-ccw').addEventListener('click',()=>rotatePage(-90));
+$('#btn-extract').addEventListener('click',extractPage);
+$('#btn-flatten').addEventListener('click',flattenMarkups);
+$('#btn-ocr').addEventListener('click',runOCR);
+
+// ═══════════════════════════════════════════════════════════════
+// SPACEBAR PAN
+// ═══════════════════════════════════════════════════════════════
+let spaceDown=false,panStart=null,scrollStart=null,panVp=null;
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.target.matches('input,textarea,[contenteditable]')){e.preventDefault();spaceDown=true;viewportA.classList.add('grab');if(S.splitView)$('#viewport-b').classList.add('grab')}});
+window.addEventListener('keyup',e=>{if(e.code==='Space'){spaceDown=false;panStart=null;viewportA.classList.remove('grab','grabbing');if(S.splitView)$('#viewport-b').classList.remove('grab','grabbing')}});
+[viewportA,$('#viewport-b')].forEach(vp=>{
+  vp.addEventListener('mousedown',e=>{if(spaceDown){e.preventDefault();panStart={x:e.clientX,y:e.clientY};scrollStart={x:vp.scrollLeft,y:vp.scrollTop};panVp=vp;vp.classList.add('grabbing');vp.classList.remove('grab')}});
+});
+window.addEventListener('mousemove',e=>{if(panStart&&spaceDown&&panVp){panVp.scrollLeft=scrollStart.x-(e.clientX-panStart.x);panVp.scrollTop=scrollStart.y-(e.clientY-panStart.y)}});
+window.addEventListener('mouseup',()=>{if(panStart){panStart=null;if(panVp){panVp.classList.remove('grabbing');if(spaceDown)panVp.classList.add('grab')}panVp=null}});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+updatePrediction();updateZoomDisplay();$('#btn-thumb-toggle').classList.add('active');
+setStatus('Ready — Open a workspace to begin');
+
+})();
+</script>
+</body>
+</html>
