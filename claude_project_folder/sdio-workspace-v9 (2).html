@@ -368,8 +368,9 @@ svg.markup-layer .callout-leader{pointer-events:none}
           </div>
           <div class="tax-row"><label>CSI MasterFormat</label><input list="specList" id="r-spec" placeholder="Search specs…" autocomplete="off"><datalist id="specList"></datalist></div>
           <div class="tax-row"><label>Date Received</label><input type="date" id="r-date"></div>
+          <div class="ts-title" style="margin-top:4px;margin-bottom:2px;font-size:7px;opacity:.6">CLIENT / JOB ID → [AAA][YY][JJ]</div>
           <div style="display:flex;gap:3px">
-            <div class="tax-row" style="flex:1"><label>Client (3)</label><input type="text" id="r-client" maxlength="3" placeholder="AAA"></div>
+            <div class="tax-row" style="flex:2"><label>Client (3)</label><input type="text" id="r-client" maxlength="3" placeholder="AAA"></div>
             <div class="tax-row" style="flex:1"><label>Year (2)</label><input type="text" id="r-jobyr" maxlength="2" placeholder="YY"></div>
             <div class="tax-row" style="flex:1"><label>Job # (2)</label><input type="text" id="r-jobnum" maxlength="2" placeholder="JJ"></div>
           </div>
@@ -431,6 +432,14 @@ svg.markup-layer .callout-leader{pointer-events:none}
       <div style="margin-bottom:8px">Enter page range (e.g. 1-5, 8, 12-15):</div>
       <input class="modal-input" id="extract-range" placeholder="1-5, 8, 12-15">
       <div style="font-size:9px;color:var(--text-muted)" id="extract-info"></div>
+      <div style="margin-top:8px">
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary);cursor:pointer;margin-bottom:4px">
+          <input type="radio" name="extract-mode" value="combined" checked> All selected pages into one PDF
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary);cursor:pointer">
+          <input type="radio" name="extract-mode" value="individual"> Each page as a separate PDF file
+        </label>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal('extract')">Cancel</button>
@@ -832,8 +841,14 @@ async function loadPdf(entry){
   }catch(e){toast('✗ PDF load failed: '+e.message);setStatus('Error')}
 }
 
+// Lazy rendering: only render pages visible in the viewport using IntersectionObserver
+let _pageObserver=null;
+const _renderedPages=new Set();
+
 function renderAllPages(){
   viewport.innerHTML='';
+  _renderedPages.clear();
+  if(_pageObserver)_pageObserver.disconnect();
   const col=document.createElement('div');col.id='page-column';
   viewport.appendChild(col);
   const dpr=window.devicePixelRatio||1;
@@ -841,10 +856,6 @@ function renderAllPages(){
   for(let i=0;i<S.pageCount;i++){
     const pn=i+1;
     const userRot=(S.pageRotations[pn]||0);
-
-    // Ask PDF.js for the ACTUAL display viewport — this handles native rotation correctly
-    // We use a synchronous cached page ref approach: get dims from getPage + getViewport
-    // For layout, use scale=1 viewport to get base dimensions, then multiply by zoom
     const dim=S.pageDims[i];
     const isUserRotated=(userRot===90||userRot===270);
     const baseW=isUserRotated?dim.h:dim.w;
@@ -859,13 +870,12 @@ function renderAllPages(){
     pdfCanvas.style.width=w+'px';pdfCanvas.style.height=h+'px';
     wrapper.appendChild(pdfCanvas);
 
-    // SVG markup overlay (Phase 4)
+    // SVG markup overlay
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('class','markup-layer');
     svg.setAttribute('viewBox',`0 0 ${baseW} ${baseH}`);
     svg.setAttribute('data-page',pn);
     svg.style.width=w+'px';svg.style.height=h+'px';
-    // Defs for arrowheads
     const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
     const marker=document.createElementNS('http://www.w3.org/2000/svg','marker');
     marker.setAttribute('id','arrow-'+pn);marker.setAttribute('viewBox','0 0 10 10');
@@ -885,12 +895,30 @@ function renderAllPages(){
 
     col.appendChild(wrapper);
 
-    renderPdfPage(pn,pdfCanvas,w,h,dpr,userRot);
+    // Immediately render markups + events (lightweight)
     renderPageMarkups(pn,svg);
     setupMarkupEvents(pn,svg);
   }
 
   const spacer=document.createElement('div');spacer.style.height='40px';col.appendChild(spacer);
+
+  // IntersectionObserver for lazy PDF rendering — only render pages near the viewport
+  _pageObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      const pn=parseInt(entry.target.dataset.page);
+      if(entry.isIntersecting&&!_renderedPages.has(pn)){
+        _renderedPages.add(pn);
+        const canvas=entry.target.querySelector('canvas.pdf-canvas');
+        const w=parseFloat(entry.target.style.width);
+        const h=parseFloat(entry.target.style.height);
+        const userRot=(S.pageRotations[pn]||0);
+        renderPdfPage(pn,canvas,w,h,dpr,userRot);
+      }
+    });
+  },{root:viewport,rootMargin:'200% 0px'});
+
+  document.querySelectorAll('.page-wrapper').forEach(wr=>_pageObserver.observe(wr));
+
   viewport.onscroll=trackCurrentPage;
   setTimeout(trackCurrentPage,100);
 }
@@ -1651,27 +1679,50 @@ async function deletePageRange(pages){
   }catch(e){toast('✗ '+e.message)}
 }
 
-// Extract pages
+// Extract pages — combined or individual mode
 $('#btn-extract-go').addEventListener('click',async()=>{
   const range=$('#extract-range').value;
   const pages=parsePageRange(range);
   if(!pages.length){toast('⚠ Invalid range');return}
+  const mode=document.querySelector('input[name="extract-mode"]:checked').value;
+  const baseName=S.selectedFile?S.selectedFile.name.replace(/\.pdf$/i,''):'extract';
   try{
     const file=await S.selectedHandle.getFile();
     const srcData=await file.arrayBuffer();
     const srcDoc=await PDFLib.PDFDocument.load(srcData);
-    const newDoc=await PDFLib.PDFDocument.create();
-    const indices=pages.map(p=>p-1).filter(i=>i>=0&&i<srcDoc.getPageCount());
-    const copied=await newDoc.copyPages(srcDoc,indices);
-    copied.forEach(p=>newDoc.addPage(p));
-    const bytes=await newDoc.save();
-    const blob=new Blob([bytes],{type:'application/pdf'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    const baseName=S.selectedFile?S.selectedFile.name.replace(/\.pdf$/i,''):'extract';
-    a.download=baseName+'_pages_'+range.replace(/[^0-9,-]/g,'')+'.pdf';
-    a.click();
-    closeModal('extract');toast('✓ Extracted '+pages.length+' pages');
+    if(mode==='individual'){
+      // Each page as a separate PDF
+      toast('⏳ Extracting '+pages.length+' pages…');
+      for(const pn of pages){
+        const idx=pn-1;
+        if(idx<0||idx>=srcDoc.getPageCount())continue;
+        const singleDoc=await PDFLib.PDFDocument.create();
+        const [copied]=await singleDoc.copyPages(srcDoc,[idx]);
+        singleDoc.addPage(copied);
+        const bytes=await singleDoc.save();
+        const blob=new Blob([bytes],{type:'application/pdf'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download=baseName+'_page_'+pn+'.pdf';
+        a.click();
+        // Small delay between downloads so browser doesn't block them
+        await new Promise(r=>setTimeout(r,200));
+      }
+      closeModal('extract');toast('✓ Extracted '+pages.length+' pages as individual files');
+    }else{
+      // All into one PDF
+      const newDoc=await PDFLib.PDFDocument.create();
+      const indices=pages.map(p=>p-1).filter(i=>i>=0&&i<srcDoc.getPageCount());
+      const copied=await newDoc.copyPages(srcDoc,indices);
+      copied.forEach(p=>newDoc.addPage(p));
+      const bytes=await newDoc.save();
+      const blob=new Blob([bytes],{type:'application/pdf'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=baseName+'_pages_'+range.replace(/[^0-9,-]/g,'')+'.pdf';
+      a.click();
+      closeModal('extract');toast('✓ Extracted '+pages.length+' pages');
+    }
   }catch(e){toast('✗ '+e.message)}
 });
 
