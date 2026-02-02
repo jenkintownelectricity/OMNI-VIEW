@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDIO Workspace v9.0 â€” Bluebeam-Class PDF Platform</title>
+<title>SDIO Workspace v9.0 — Bluebeam-Class PDF Platform</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SDIO WORKSPACE v9.0 â€” DARK MATTER THEME
+   SDIO WORKSPACE v9.0 — DARK MATTER THEME
    Phases 1-7: Full Bluebeam-class implementation
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 :root {
@@ -288,7 +288,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
     <!-- LEFT: EXPLORER -->
     <div id="panel-left">
       <div class="panel-hdr"><span>EXPLORER</span><button id="btn-open-inline" title="Open Workspace"><span class="material-icons-round" style="font-size:14px">add</span></button></div>
-      <input type="text" id="file-filter" placeholder="Filter filesâ€¦">
+      <input type="text" id="file-filter" placeholder="Filter files…">
       <div id="file-tree"></div>
       <div id="workspace-label"></div>
     </div>
@@ -361,12 +361,12 @@ svg.markup-layer .callout-leader{pointer-events:none}
           <div class="quick-grid" id="quickGrid"></div>
         </div>
         <div class="tax-section">
-          <div class="tax-row"><label>Classification Code (XXX)</label><input list="codeList" id="r-class" placeholder="Search codesâ€¦" autocomplete="off"><datalist id="codeList"></datalist></div>
+          <div class="tax-row"><label>Classification Code (XXX)</label><input list="codeList" id="r-class" placeholder="Search codes…" autocomplete="off"><datalist id="codeList"></datalist></div>
           <div style="display:flex;gap:3px">
             <div class="tax-row" style="flex:1"><label>Revision</label><select id="r-rev"><option value="R00">R00</option><option>R01</option><option>R02</option><option>R03</option><option>R04</option><option>R05</option></select></div>
             <div class="tax-row" style="flex:1"><label>Version</label><select id="r-ver"><option value="V01">V01</option><option>V02</option><option>V03</option><option>V04</option><option>V05</option></select></div>
           </div>
-          <div class="tax-row"><label>CSI MasterFormat</label><input list="specList" id="r-spec" placeholder="Search specsâ€¦" autocomplete="off"><datalist id="specList"></datalist></div>
+          <div class="tax-row"><label>CSI MasterFormat</label><input list="specList" id="r-spec" placeholder="Search specs…" autocomplete="off"><datalist id="specList"></datalist></div>
           <div class="tax-row"><label>Date Received</label><input type="date" id="r-date"></div>
           <div style="display:flex;gap:3px">
             <div class="tax-row" style="flex:1"><label>Client (3)</label><input type="text" id="r-client" maxlength="3" placeholder="AAA"></div>
@@ -375,7 +375,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
           </div>
           <div class="tax-row"><label>Description</label><input type="text" id="r-desc" placeholder="e.g. StumpNeck-Assembly"><div class="predict-box" id="predictionBox"></div></div>
         </div>
-        <div id="predict-box-tax"><div class="plabel">PREDICTED FILENAME</div><div class="pvalue" id="predict-value">â€”</div></div>
+        <div id="predict-box-tax"><div class="plabel">PREDICTED FILENAME</div><div class="pvalue" id="predict-value">—</div></div>
         <button class="btn-rename-main" id="btn-rename" disabled><span class="material-icons-round" style="font-size:14px">drive_file_rename_outline</span> RENAME &amp; ARCHIVE</button>
       </div>
 
@@ -456,10 +456,10 @@ svg.markup-layer .callout-leader{pointer-events:none}
     <div class="modal-body">
       <div style="margin-bottom:8px">Label for page <span id="label-page-num">1</span>:</div>
       <input class="modal-input" id="label-input" placeholder="e.g. A-101, ROOF PLAN">
-      <div style="margin-bottom:8px;margin-top:4px">Or batch label â€” range:</div>
+      <div style="margin-bottom:8px;margin-top:4px">Or batch label — range:</div>
       <input class="modal-input" id="label-range" placeholder="e.g. 1-10">
       <input class="modal-input" id="label-prefix" placeholder="Prefix e.g. A-">
-      <div style="font-size:9px;color:var(--text-muted)">Batch will label: A-001, A-002, â€¦</div>
+      <div style="font-size:9px;color:var(--text-muted)">Batch will label: A-001, A-002, …</div>
     </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeModal('label')">Cancel</button>
@@ -487,7 +487,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
 
 <script>
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SDIO WORKSPACE v9.0 â€” COMPLETE APPLICATION LOGIC
+   SDIO WORKSPACE v9.0 — COMPLETE APPLICATION LOGIC
    Phases 1-7 Implementation
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 (function() {
@@ -497,22 +497,22 @@ svg.markup-layer .callout-leader{pointer-events:none}
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   TAXONOMY DATA (from v8.1 â€” preserved per L0 constraint)
+   TAXONOMY DATA (from v8.1 — preserved per L0 constraint)
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-const TAXONOMY_DATA=[{c:"000",d:"General Admin"},{c:"001",d:"Transmittals"},{c:"002",d:"Meeting Minutes"},{c:"005",d:"Insurance â€“ COI"},{c:"010",d:"Permits"},{c:"020",d:"Invoices (AR)"},{c:"030",d:"Bills (AP)"},{c:"040",d:"Payroll"},{c:"050",d:"Legal"},
+const TAXONOMY_DATA=[{c:"000",d:"General Admin"},{c:"001",d:"Transmittals"},{c:"002",d:"Meeting Minutes"},{c:"005",d:"Insurance — COI"},{c:"010",d:"Permits"},{c:"020",d:"Invoices (AR)"},{c:"030",d:"Bills (AP)"},{c:"040",d:"Payroll"},{c:"050",d:"Legal"},
 {c:"100",d:"Full Contract Set"},{c:"101",d:"Scope of Work"},{c:"102",d:"Full Spec Book"},{c:"103",d:"Spec Sections (Div 7)"},{c:"104",d:"Change Orders"},{c:"105",d:"Schedule (Gantt)"},{c:"110",d:"Safety Plan (SSSP)"},{c:"111",d:"Safety Manual"},
-{c:"200",d:"Full Project Set"},{c:"201",d:"Misc â€“ Taper Plans"},{c:"202",d:"Misc â€“ Mfr Details"},{c:"203",d:"Misc â€“ Takeoff/Qty"},{c:"204",d:"Misc â€“ Sketches"},{c:"205",d:"Misc â€“ Photos"},{c:"206",d:"Misc â€“ Markups"},{c:"207",d:"Prev Shop Dwgs"},
-{c:"210",d:"Full Arch Set"},{c:"211",d:"Arch â€“ Plans"},{c:"212",d:"Arch â€“ RCP"},{c:"213",d:"Arch â€“ Elevations"},{c:"214",d:"Arch â€“ Sections"},{c:"215",d:"Arch â€“ Details"},{c:"216",d:"Arch â€“ Schedules"},{c:"217",d:"Arch â€“ Interiors"},{c:"218",d:"Arch â€“ Vert Circ"},
-{c:"220",d:"Full Civil Set"},{c:"221",d:"Civil â€“ Site"},{c:"222",d:"Civil â€“ Grading"},{c:"223",d:"Civil â€“ Utilities"},{c:"224",d:"Civil â€“ Details"},{c:"225",d:"Civil â€“ Geotech"},
-{c:"230",d:"Full Struct Set"},{c:"231",d:"Struct â€“ Foundation"},{c:"232",d:"Struct â€“ Framing"},{c:"233",d:"Struct â€“ Elevations"},{c:"234",d:"Struct â€“ Sections"},{c:"235",d:"Struct â€“ Details"},
-{c:"240",d:"Full Fire Set"},{c:"241",d:"Fire â€“ Sprinkler"},{c:"242",d:"Fire â€“ Alarm"},{c:"243",d:"Fire â€“ Details"},
-{c:"250",d:"Full Landscape Set"},{c:"251",d:"Landscape â€“ Plans"},{c:"252",d:"Landscape â€“ Details"},{c:"253",d:"Landscape â€“ Green Roof"},
-{c:"260",d:"Full Plumbing Set"},{c:"261",d:"Plumb â€“ Plans"},{c:"262",d:"Plumb â€“ Roof Drains"},{c:"263",d:"Plumb â€“ Risers"},{c:"264",d:"Plumb â€“ Details"},
-{c:"270",d:"Full Mech Set"},{c:"271",d:"Mech â€“ HVAC"},{c:"272",d:"Mech â€“ Piping"},{c:"273",d:"Mech â€“ Roof RTUs"},{c:"274",d:"Mech â€“ Details"},
-{c:"280",d:"Full Elec Set"},{c:"281",d:"Elec â€“ Power"},{c:"282",d:"Elec â€“ Lighting"},{c:"283",d:"Elec â€“ Low Voltage"},{c:"284",d:"Elec â€“ Roof"},{c:"285",d:"Elec â€“ Details"},
+{c:"200",d:"Full Project Set"},{c:"201",d:"Misc — Taper Plans"},{c:"202",d:"Misc — Mfr Details"},{c:"203",d:"Misc — Takeoff/Qty"},{c:"204",d:"Misc — Sketches"},{c:"205",d:"Misc — Photos"},{c:"206",d:"Misc — Markups"},{c:"207",d:"Prev Shop Dwgs"},
+{c:"210",d:"Full Arch Set"},{c:"211",d:"Arch — Plans"},{c:"212",d:"Arch — RCP"},{c:"213",d:"Arch — Elevations"},{c:"214",d:"Arch — Sections"},{c:"215",d:"Arch — Details"},{c:"216",d:"Arch — Schedules"},{c:"217",d:"Arch — Interiors"},{c:"218",d:"Arch — Vert Circ"},
+{c:"220",d:"Full Civil Set"},{c:"221",d:"Civil — Site"},{c:"222",d:"Civil — Grading"},{c:"223",d:"Civil — Utilities"},{c:"224",d:"Civil — Details"},{c:"225",d:"Civil — Geotech"},
+{c:"230",d:"Full Struct Set"},{c:"231",d:"Struct — Foundation"},{c:"232",d:"Struct — Framing"},{c:"233",d:"Struct — Elevations"},{c:"234",d:"Struct — Sections"},{c:"235",d:"Struct — Details"},
+{c:"240",d:"Full Fire Set"},{c:"241",d:"Fire — Sprinkler"},{c:"242",d:"Fire — Alarm"},{c:"243",d:"Fire — Details"},
+{c:"250",d:"Full Landscape Set"},{c:"251",d:"Landscape — Plans"},{c:"252",d:"Landscape — Details"},{c:"253",d:"Landscape — Green Roof"},
+{c:"260",d:"Full Plumbing Set"},{c:"261",d:"Plumb — Plans"},{c:"262",d:"Plumb — Roof Drains"},{c:"263",d:"Plumb — Risers"},{c:"264",d:"Plumb — Details"},
+{c:"270",d:"Full Mech Set"},{c:"271",d:"Mech — HVAC"},{c:"272",d:"Mech — Piping"},{c:"273",d:"Mech — Roof RTUs"},{c:"274",d:"Mech — Details"},
+{c:"280",d:"Full Elec Set"},{c:"281",d:"Elec — Power"},{c:"282",d:"Elec — Lighting"},{c:"283",d:"Elec — Low Voltage"},{c:"284",d:"Elec — Roof"},{c:"285",d:"Elec — Details"},
 {c:"290",d:"Internal Inputs"},{c:"291",d:"Ref Shop Dwgs"},{c:"292",d:"3rd Party Set"},{c:"293",d:"3rd Party Plan"},{c:"294",d:"3rd Party Doc"},
-{c:"300",d:"Full Submittal Log"},{c:"301",d:"Assembly Letter (NOA)"},{c:"302",d:"Product Data"},{c:"303",d:"Mfr Standard Details"},{c:"304",d:"SDS Sheets"},{c:"305",d:"Sample Tracking"},{c:"306",d:"Returned Submittals"},{c:"307",d:"Client Markups"},{c:"308",d:"Inhouse Markups"},{c:"309",d:"GC/Arch Markups"},{c:"310",d:"Warranty â€“ Mfr"},{c:"311",d:"Warranty â€“ GC"},
-{c:"400",d:"Full Field Log"},{c:"401",d:"Daily Reports"},{c:"402",d:"Safety Reports"},{c:"403",d:"Incident Reports"},{c:"410",d:"Photos â€“ Pre-Existing"},{c:"411",d:"Photos â€“ Progress"},{c:"412",d:"Photos â€“ Drone"},{c:"413",d:"Photos â€“ Final"},{c:"420",d:"Surveys"},{c:"421",d:"Redlines â€“ Field"},
+{c:"300",d:"Full Submittal Log"},{c:"301",d:"Assembly Letter (NOA)"},{c:"302",d:"Product Data"},{c:"303",d:"Mfr Standard Details"},{c:"304",d:"SDS Sheets"},{c:"305",d:"Sample Tracking"},{c:"306",d:"Returned Submittals"},{c:"307",d:"Client Markups"},{c:"308",d:"Inhouse Markups"},{c:"309",d:"GC/Arch Markups"},{c:"310",d:"Warranty — Mfr"},{c:"311",d:"Warranty — GC"},
+{c:"400",d:"Full Field Log"},{c:"401",d:"Daily Reports"},{c:"402",d:"Safety Reports"},{c:"403",d:"Incident Reports"},{c:"410",d:"Photos — Pre-Existing"},{c:"411",d:"Photos — Progress"},{c:"412",d:"Photos — Drone"},{c:"413",d:"Photos — Final"},{c:"420",d:"Surveys"},{c:"421",d:"Redlines — Field"},
 {c:"500",d:"Full Shop Drawing Set"},{c:"501",d:"Shop Dwg (PDF)"},{c:"502",d:"Shop Dwg (DWG)"},{c:"503",d:"As-Builts"},{c:"504",d:"Closeout Package"},{c:"550",d:"Proposal/Estimate"},
 {c:"600",d:"OCR Text Corpus"},{c:"601",d:"Geometry (DXF)"},{c:"602",d:"Layer List"},{c:"603",d:"Block List"},{c:"604",d:"Stats (JSON)"},
 {c:"700",d:"Training Pairs"},{c:"701",d:"Validation Set"},{c:"702",d:"Model Weights"}];
@@ -580,10 +580,10 @@ window.closeModal=closeModal;
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const MENUS = {
   File:[
-    {label:'Open Workspaceâ€¦',icon:'folder_open',short:'Ctrl+O',action:()=>openDirectory()},
+    {label:'Open Workspace…',icon:'folder_open',short:'Ctrl+O',action:()=>openDirectory()},
     {label:'Refresh',icon:'refresh',short:'F5',action:()=>{scanDirectory();toast('âœ“ Refreshed')}},
     {sep:true},
-    {label:'Export Page(s)â€¦',icon:'download',action:()=>{if(!S.pdfDoc){toast('âš  No PDF');return}showModal('extract')}},
+    {label:'Export Page(s)…',icon:'download',action:()=>{if(!S.pdfDoc){toast('âš  No PDF');return}showModal('extract')}},
     {label:'Save Markups',icon:'save',short:'Ctrl+S',action:saveMarkups},
     {label:'Load Markups',icon:'file_open',action:loadMarkups},
     {sep:true},
@@ -610,15 +610,15 @@ const MENUS = {
     {label:'Thumbnails',icon:'view_sidebar',short:'Alt+T',action:toggleThumbs},
   ],
   Document:[
-    {label:'Rotate Page 90Â°',icon:'rotate_right',action:rotatePage},
+    {label:'Rotate Page 90°',icon:'rotate_right',action:rotatePage},
     {label:'Insert Blank Page',icon:'note_add',action:insertBlankPage},
     {sep:true},
-    {label:'Extract Pagesâ€¦',icon:'content_cut',action:()=>showModal('extract')},
-    {label:'Split Documentâ€¦',icon:'call_split',action:()=>showModal('split')},
-    {label:'Delete Page(s)â€¦',icon:'delete_forever',action:deletePages},
+    {label:'Extract Pages…',icon:'content_cut',action:()=>showModal('extract')},
+    {label:'Split Document…',icon:'call_split',action:()=>showModal('split')},
+    {label:'Delete Page(s)…',icon:'delete_forever',action:deletePages},
     {sep:true},
-    {label:'Page Labelsâ€¦',icon:'label',action:()=>{$('#label-page-num').textContent=S.currentPage;$('#label-input').value=S.pageLabels[S.currentPage]||'';showModal('label')}},
-    {label:'Batch Labelâ€¦',icon:'label',action:()=>showModal('label')},
+    {label:'Page Labels…',icon:'label',action:()=>{$('#label-page-num').textContent=S.currentPage;$('#label-input').value=S.pageLabels[S.currentPage]||'';showModal('label')}},
+    {label:'Batch Label…',icon:'label',action:()=>showModal('label')},
   ],
   Tools:[
     {label:'Select',icon:'near_me',short:'Esc',action:()=>setTool('select')},
@@ -633,7 +633,7 @@ const MENUS = {
     {label:'Ellipse',icon:'circle',short:'E',action:()=>setTool('ellipse')},
     {label:'Cloud',icon:'cloud',short:'C',action:()=>setTool('cloud')},
     {sep:true},
-    {label:'Measurements',icon:'straighten',stub:true,action:()=>toast('â³ Measurements â€” coming soon')},
+    {label:'Measurements',icon:'straighten',stub:true,action:()=>toast('â³ Measurements — coming soon')},
   ],
 };
 
@@ -745,7 +745,7 @@ async function selectFile(entry){
   renderFileTree();
   $('#prop-filename').value=entry.name;
   $('#prop-filetype').value=getExt(entry.name).toUpperCase();
-  $('#prop-pages').value='â€”';
+  $('#prop-pages').value='—';
   generatePredictions(entry.name);
   $('#r-date').value=todayISO();
   updateFilename();
@@ -768,7 +768,7 @@ function clearCanvas(){
    PHASE 1: PDF LOADING & AUTOCAD ZOOM/PAN ENGINE
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 async function loadPdf(entry){
-  setStatus('Loading PDFâ€¦');
+  setStatus('Loading PDF…');
   try{
     const file=await entry.handle.getFile();
     const ab=await file.arrayBuffer();
@@ -794,7 +794,7 @@ async function loadPdf(entry){
     renderAllPages();
     renderThumbnails();
     updateZoomDisplay();
-    setStatus(`PDF: ${entry.name} â€” ${doc.numPages} page${doc.numPages>1?'s':''}`);
+    setStatus(`PDF: ${entry.name} — ${doc.numPages} page${doc.numPages>1?'s':''}`);
     toast(`âœ“ PDF loaded: ${doc.numPages} pages`);
     updateSbRight();
   }catch(e){toast('âœ— PDF load failed: '+e.message);setStatus('Error')}
@@ -810,7 +810,7 @@ function renderAllPages(){
     const pn=i+1;
     const userRot=(S.pageRotations[pn]||0);
 
-    // Ask PDF.js for the ACTUAL display viewport â€” this handles native rotation correctly
+    // Ask PDF.js for the ACTUAL display viewport — this handles native rotation correctly
     // We use a synchronous cached page ref approach: get dims from getPage + getViewport
     // For layout, use scale=1 viewport to get base dimensions, then multiply by zoom
     const dim=S.pageDims[i];
@@ -982,7 +982,7 @@ function updateSbRight(){
   if(S.pageCount>0)parts.push('Page '+S.currentPage+'/'+S.pageCount);
   parts.push(Math.round(S.zoom*100)+'%');
   if(S.undoStack.length)parts.push(S.undoStack.length+' actions');
-  $('#sb-right').textContent=parts.join(' Â· ');
+  $('#sb-right').textContent=parts.join(' · ');
 }
 
 function trackCurrentPage(){
@@ -1059,8 +1059,8 @@ function toggleThumbs(){
 
 function showThumbContextMenu(e,pageNum){
   const ctx=$('#ctx-menu');ctx.innerHTML='';
-  [{label:'Edit Page Labelâ€¦',action:()=>{$('#label-page-num').textContent=pageNum;$('#label-input').value=S.pageLabels[pageNum]||'';showModal('label')}},
-   {label:'Rotate 90Â° CW',action:()=>{S.pageRotations[pageNum]=((S.pageRotations[pageNum]||0)+90)%360;const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);renderThumbnails();toast('âœ“ Page '+pageNum+' rotated')}},
+  [{label:'Edit Page Label…',action:()=>{$('#label-page-num').textContent=pageNum;$('#label-input').value=S.pageLabels[pageNum]||'';showModal('label')}},
+   {label:'Rotate 90° CW',action:()=>{S.pageRotations[pageNum]=((S.pageRotations[pageNum]||0)+90)%360;const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);renderThumbnails();toast('âœ“ Page '+pageNum+' rotated')}},
    {sep:true},
    {label:'Extract This Page',action:()=>{$('#extract-range').value=String(pageNum);showModal('extract')}},
    {label:'Delete This Page',action:()=>{if(confirm('Delete page '+pageNum+'?'))deletePageRange([pageNum])}},
@@ -1077,7 +1077,7 @@ $('#btn-thumb-select-mode').addEventListener('click',()=>{
   S.thumbSelectMode=!S.thumbSelectMode;
   if(!S.thumbSelectMode)S.thumbSelected=[];
   $$('.thumb-item').forEach(t=>t.classList.remove('multi-selected'));
-  toast(S.thumbSelectMode?'Multi-select ON â€” click pages':'Multi-select OFF');
+  toast(S.thumbSelectMode?'Multi-select ON — click pages':'Multi-select OFF');
 });
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -1091,7 +1091,7 @@ async function loadImage(entry){
 }
 function showUnsupported(entry){
   thumbSidebar.classList.add('hidden');
-  viewport.innerHTML='<div id="empty-state"><div class="big-diamond" style="font-size:32px">ðŸ“„</div><div class="title" style="font-size:14px">'+entry.name+'</div><div class="sub">'+getExt(entry.name).toUpperCase()+' â€” Preview not available</div></div>';
+  viewport.innerHTML='<div id="empty-state"><div class="big-diamond" style="font-size:32px">ðŸ“„</div><div class="title" style="font-size:14px">'+entry.name+'</div><div class="sub">'+getExt(entry.name).toUpperCase()+' — Preview not available</div></div>';
   setStatus('File: '+entry.name);
 }
 
@@ -1235,6 +1235,7 @@ function setupMarkupEvents(pn,svg){
     return;
   }
 
+  svg.style.pointerEvents='';
   svg.classList.add('tool-active');
   let drawing=false,startPt=null,tempEl=null,penPts=[];
   const ns='http://www.w3.org/2000/svg';
@@ -1724,7 +1725,7 @@ function loadMarkups(){
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 // Populate datalists
 const codeListEl=$('#codeList');
-TAXONOMY_DATA.forEach(i=>{const o=document.createElement('option');o.value=i.c;o.label=i.c+' â€” '+i.d;codeListEl.appendChild(o)});
+TAXONOMY_DATA.forEach(i=>{const o=document.createElement('option');o.value=i.c;o.label=i.c+' — '+i.d;codeListEl.appendChild(o)});
 const specListEl=$('#specList');
 SPEC_CODES.forEach(i=>{const o=document.createElement('option');o.value=i.v;o.label=i.l;specListEl.appendChild(o)});
 
@@ -1769,7 +1770,7 @@ function generatePredictions(fn){
 }
 
 function updateFilename(){
-  if(!S.selectedFile){predictValue.textContent='â€”';btnRename.disabled=true;return}
+  if(!S.selectedFile){predictValue.textContent='—';btnRename.disabled=true;return}
   const cls=$('#r-class').value||'';
   const rev=$('#r-rev').value||'R00';
   const ver=$('#r-ver').value||'V01';
@@ -1783,7 +1784,7 @@ function updateFilename(){
   if(!desc&&S.selectedHandle)desc=S.selectedHandle.name.replace(/\.[^/.]+$/,'').replace(/\s+/g,'-');
   if(!desc)desc='DESC';desc=desc.replace(/\s+/g,'-');
   const ext=S.selectedHandle?'.'+getExt(S.selectedHandle.name):'.pdf';
-  if(!cls){predictValue.textContent='â€” Set classification code â€”';btnRename.disabled=true;return}
+  if(!cls){predictValue.textContent='— Set classification code —';btnRename.disabled=true;return}
   const result=`${cls}-${rev}-${ver}-${spec}-${ds}-${cc}${jy}${jn}-${desc}${ext}`;
   predictValue.textContent=result;
   validateRenameFields();
@@ -1809,7 +1810,7 @@ $('#r-desc').addEventListener('input',function(){this.value=this.value.replace(/
 btnRename.addEventListener('click',()=>{
   if(!S.selectedFile||!S.selectedHandle||!S.dirHandle)return;
   const newName=predictValue.textContent;
-  if(!newName||newName.startsWith('â€”'))return;
+  if(!newName||newName.startsWith('—'))return;
   $('#rename-old-name').textContent=S.selectedFile.name;
   $('#rename-new-name').textContent=newName;
   showModal('rename-confirm');
@@ -1994,7 +1995,7 @@ $('#r-date').value=todayISO();
 updateFilename();validateRenameFields();
 updateZoomDisplay();updateUndoUI();
 $('#btn-thumb-toggle').classList.add('active');
-setStatus('Ready â€” Open a workspace to begin');
+setStatus('Ready — Open a workspace to begin');
 
 })();
 </script>
