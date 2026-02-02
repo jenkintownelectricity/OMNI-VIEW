@@ -8,10 +8,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    SDIO WORKSPACE v9.0 — DARK MATTER THEME
    Phases 1-7: Full Bluebeam-class implementation
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 :root {
   --bg-root:#0b0d11; --bg-panel:#0f1117; --bg-header:#12151d;
   --bg-surface:#161a24; --bg-hover:#1c2030; --bg-active:#1e2538;
@@ -29,7 +29,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 ::-webkit-scrollbar-thumb:hover{background:#3a4050}
 #app{display:flex;flex-direction:column;height:100vh}
 
-/* â”€â”€â”€ TITLE BAR â”€â”€â”€ */
+/* ─── TITLE BAR ─── */
 #titlebar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg,#181c24,#0f1117);border-bottom:1px solid var(--border);flex-shrink:0}
 .logo{display:flex;align-items:center;gap:8px}
 .logo .diamond{color:var(--accent);font-size:16px;font-weight:900}
@@ -37,7 +37,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .logo .ver{color:var(--orange);font-size:7px;font-weight:700;letter-spacing:1.5px;background:rgba(240,160,48,0.1);padding:2px 6px;border-radius:3px}
 #global-status{color:var(--text-muted);font-size:10px}
 
-/* â”€â”€â”€ MENU BAR (Phase 2) â”€â”€â”€ */
+/* ─── MENU BAR (Phase 2) ─── */
 #menubar{height:26px;display:flex;align-items:center;background:var(--bg-panel);border-bottom:1px solid var(--border);padding:0 4px;flex-shrink:0;position:relative;z-index:500}
 .menu-item{position:relative;display:inline-flex}
 .menu-trigger{background:transparent;border:none;color:var(--text-secondary);font-family:var(--font-mono);font-size:11px;padding:4px 10px;cursor:pointer;border-radius:3px}
@@ -52,7 +52,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .menu-action .material-icons-round{font-size:14px;margin-right:8px;color:var(--text-muted)}
 .menu-sub-label{font-size:9px;color:var(--text-muted);padding:4px 14px;letter-spacing:1px;font-weight:700}
 
-/* â”€â”€â”€ TOOLBAR â”€â”€â”€ */
+/* ─── TOOLBAR ─── */
 #toolbar{height:36px;display:flex;align-items:center;gap:2px;padding:0 6px;background:var(--bg-header);border-bottom:1px solid var(--border);flex-shrink:0}
 .tb-btn{width:30px;height:26px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid transparent;border-radius:4px;color:var(--text-secondary);cursor:pointer;font-size:16px;transition:all .12s}
 .tb-btn:hover{background:var(--bg-hover);color:var(--text-primary);border-color:var(--border)}
@@ -66,10 +66,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .tb-page-ind input{width:32px;background:var(--bg-root);border:1px solid var(--border);border-radius:3px;color:var(--text-primary);font-family:var(--font-mono);font-size:10px;text-align:center;padding:2px;outline:none}
 .tb-page-ind input:focus{border-color:var(--accent)}
 
-/* â”€â”€â”€ MAIN LAYOUT â”€â”€â”€ */
+/* ─── MAIN LAYOUT ─── */
 #main{flex:1;display:flex;overflow:hidden}
 
-/* â”€â”€â”€ FILE EXPLORER (Left Panel) â”€â”€â”€ */
+/* ─── FILE EXPLORER (Left Panel) ─── */
 #panel-left{width:200px;min-width:140px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
 .panel-hdr{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:var(--bg-header);border-bottom:1px solid var(--border);flex-shrink:0}
 .panel-hdr span{font-size:8px;font-weight:700;letter-spacing:1.5px;color:var(--text-muted)}
@@ -89,7 +89,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .badge-img{background:rgba(160,108,213,0.2);color:#c4a6e8}
 #workspace-label{padding:4px 8px;border-top:1px solid var(--border);font-size:8px;color:var(--accent);font-weight:700;flex-shrink:0;display:none}
 
-/* â”€â”€â”€ THUMBNAIL SIDEBAR (Phase 1/3) â”€â”€â”€ */
+/* ─── THUMBNAIL SIDEBAR (Phase 1/3) ─── */
 #thumb-sidebar{width:120px;min-width:110px;background:#0a0c10;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
 #thumb-sidebar.hidden{display:none}
 #thumb-list{flex:1;overflow-y:auto;padding:4px;display:flex;flex-direction:column;gap:4px}
@@ -103,7 +103,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .thumb-item .thumb-check{position:absolute;top:2px;right:2px;width:14px;height:14px;background:var(--orange);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700}
 .thumb-item.multi-selected .thumb-check{display:flex}
 
-/* â”€â”€â”€ VIEWPORT (Center) â”€â”€â”€ */
+/* ─── VIEWPORT (Center) ─── */
 #viewport{flex:1;overflow:auto;background:#1a1c22;position:relative}
 #viewport.grabbing{cursor:grabbing!important}
 #viewport.grab{cursor:grab}
@@ -123,7 +123,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 #image-viewer{display:flex;align-items:flex-start;justify-content:center;min-height:100%;padding:20px}
 #image-viewer img{max-width:100%;height:auto;box-shadow:0 4px 24px rgba(0,0,0,0.5)}
 
-/* â”€â”€â”€ RIGHT PANEL (Tabbed) â”€â”€â”€ */
+/* ─── RIGHT PANEL (Tabbed) ─── */
 #panel-right{width:270px;min-width:200px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
 .tab-bar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-header)}
 .tab-btn{flex:1;padding:6px 2px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.6px;cursor:pointer;text-transform:uppercase;transition:all .12s}
@@ -177,14 +177,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .tc-btn .material-icons-round{font-size:16px}
 .tc-btn .tc-label{font-size:6px;letter-spacing:.3px;font-weight:600}
 
-/* â”€â”€â”€ STATUS BAR â”€â”€â”€ */
+/* ─── STATUS BAR ─── */
 #statusbar{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--bg-root);border-top:1px solid var(--border);font-size:9px;color:var(--text-muted);flex-shrink:0}
 
-/* â”€â”€â”€ TOAST â”€â”€â”€ */
+/* ─── TOAST ─── */
 #toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:8px;padding:8px 18px;color:var(--text-primary);font-size:11px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.6);white-space:nowrap;pointer-events:none;opacity:0;transition:all .25s ease}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* â”€â”€â”€ CONTEXT MENU (Phase 3/7) â”€â”€â”€ */
+/* ─── CONTEXT MENU (Phase 3/7) ─── */
 #ctx-menu{display:none;position:fixed;background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:6px;padding:4px 0;z-index:9998;box-shadow:0 12px 40px rgba(0,0,0,0.7);min-width:180px}
 #ctx-menu.show{display:block}
 .ctx-item{display:flex;align-items:center;gap:6px;padding:5px 12px;background:transparent;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:10px;cursor:pointer;width:100%;text-align:left}
@@ -192,7 +192,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .ctx-item .ctx-short{margin-left:auto;color:var(--text-muted);font-size:8px}
 .ctx-sep{height:1px;background:var(--border);margin:3px 10px}
 
-/* â”€â”€â”€ MODALS â”€â”€â”€ */
+/* ─── MODALS ─── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .modal-overlay.show{display:flex}
 .modal{background:var(--bg-surface);border:1px solid var(--border-bright);border-radius:10px;padding:16px;min-width:360px;max-width:500px;box-shadow:0 24px 80px rgba(0,0,0,0.8)}
@@ -207,11 +207,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .modal-input{width:100%;padding:6px 8px;background:var(--bg-root);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;outline:none;margin-bottom:8px}
 .modal-input:focus{border-color:var(--accent)}
 
-/* â”€â”€â”€ Markup selection handles â”€â”€â”€ */
+/* ─── Markup selection handles ─── */
 .markup-selected{outline:1px dashed var(--accent);outline-offset:2px}
 .markup-handle{fill:var(--accent);stroke:#fff;stroke-width:1;cursor:move}
 
-/* â”€â”€â”€ Color/Line picker â”€â”€â”€ */
+/* ─── Color/Line picker ─── */
 .color-strip{display:flex;gap:2px;flex-wrap:wrap}
 .color-swatch{width:16px;height:16px;border-radius:3px;cursor:pointer;border:2px solid transparent}
 .color-swatch.active{border-color:#fff}
@@ -219,10 +219,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg-root);color:var(--text
 .line-weight-btn{width:28px;height:20px;display:flex;align-items:center;justify-content:center;background:var(--bg-root);border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--text-secondary);font-size:9px;font-family:var(--font-mono)}
 .line-weight-btn.active{border-color:var(--accent);color:var(--accent)}
 
-/* â”€â”€â”€ Page Label Edit â”€â”€â”€ */
+/* ─── Page Label Edit ─── */
 .label-edit-input{width:100%;padding:4px;background:var(--bg-root);border:1px solid var(--accent);border-radius:3px;color:var(--text-primary);font-family:var(--font-mono);font-size:10px;outline:none}
 
-/* â”€â”€â”€ SVG Markup Styles â”€â”€â”€ */
+/* ─── SVG Markup Styles ─── */
 svg.markup-layer text{font-family:var(--font-mono);pointer-events:all;cursor:move}
 svg.markup-layer rect.markup-obj,svg.markup-layer ellipse.markup-obj,svg.markup-layer line.markup-obj,svg.markup-layer polyline.markup-obj,svg.markup-layer path.markup-obj,svg.markup-layer polygon.markup-obj{pointer-events:all;cursor:move}
 svg.markup-layer .markup-highlight{pointer-events:all;cursor:move}
@@ -234,7 +234,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
   <!-- TITLE BAR -->
   <div id="titlebar">
     <div class="logo">
-      <span class="diamond">â—†</span>
+      <span class="diamond">◆</span>
       <span class="name">SDIO WORKSPACE</span>
       <span class="ver">v9.0</span>
     </div>
@@ -263,7 +263,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
     <button class="tb-btn" id="btn-zoom-in" title="Zoom In (+)"><span class="material-icons-round">add</span></button>
     <button class="tb-btn" id="btn-fit-width" title="Fit Width"><span class="material-icons-round">fit_screen</span></button>
     <button class="tb-btn" id="btn-fit-page" title="Fit Page"><span class="material-icons-round">crop_free</span></button>
-    <button class="tb-btn" id="btn-wheel-mode" title="Toggle: Scroll Pages â†” Zoom (Ctrl+M)"><span class="material-icons-round">swap_vert</span></button>
+    <button class="tb-btn" id="btn-wheel-mode" title="Toggle: Scroll Pages ↔ Zoom (Ctrl+M)"><span class="material-icons-round">swap_vert</span></button>
     <div class="tb-sep"></div>
     <button class="tb-btn" id="btn-thumb-toggle" title="Thumbnails (Alt+T)"><span class="material-icons-round">view_sidebar</span></button>
     <div class="tb-sep"></div>
@@ -302,7 +302,7 @@ svg.markup-layer .callout-leader{pointer-events:none}
     <!-- VIEWPORT -->
     <div id="viewport">
       <div id="empty-state">
-        <div class="big-diamond">â—†</div>
+        <div class="big-diamond">◆</div>
         <div class="title">SDIO WORKSPACE</div>
         <div class="sub">Bluebeam-Class PDF Platform v9.0</div>
       </div>
@@ -405,6 +405,9 @@ svg.markup-layer .callout-leader{pointer-events:none}
             <button class="tc-btn" id="tc-split"><span class="material-icons-round">call_split</span><span class="tc-label">Split</span></button>
             <button class="tc-btn" id="tc-delete-page"><span class="material-icons-round">delete_forever</span><span class="tc-label">Del Page</span></button>
             <button class="tc-btn" id="tc-labels"><span class="material-icons-round">label</span><span class="tc-label">Labels</span></button>
+<button class="tc-btn" id="tc-flatten"><span class="material-icons-round">layers_clear</span><span class="tc-label">Flatten</span></button>
+<button class="tc-btn" id="tc-unflatten"><span class="material-icons-round">layers</span><span class="tc-label">Unflatten</span></button>
+<button class="tc-btn" id="tc-watermark"><span class="material-icons-round">branding_watermark</span><span class="tc-label">Watermark</span></button>
           </div>
         </div>
       </div>
@@ -485,20 +488,43 @@ svg.markup-layer .callout-leader{pointer-events:none}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-watermark">
+  <div class="modal">
+    <div class="modal-title">Add Watermark</div>
+    <div class="modal-body">
+      <div style="margin-bottom:8px">Watermark text:</div>
+      <input class="modal-input" id="wm-text" value="DRAFT" placeholder="e.g. DRAFT, CONFIDENTIAL">
+      <div style="margin-bottom:8px;margin-top:8px">Font size (pt):</div>
+      <input class="modal-input" id="wm-size" type="number" min="20" max="200" value="72">
+      <div style="margin-bottom:8px;margin-top:8px">Rotation (degrees):</div>
+      <input class="modal-input" id="wm-rotation" type="number" min="-90" max="90" value="-45">
+      <div style="margin-bottom:8px;margin-top:8px">Opacity (%):</div>
+      <input class="modal-input" id="wm-opacity" type="number" min="5" max="100" value="25">
+      <div style="margin-bottom:8px;margin-top:8px">Color:</div>
+      <input type="color" id="wm-color" value="#888888" style="width:100%;height:28px;border:none;cursor:pointer">
+      <div style="margin-top:8px"><label><input type="checkbox" id="wm-all-pages" checked> Apply to all pages</label></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal('watermark')">Cancel</button>
+      <button class="modal-btn primary" id="btn-wm-go">Apply Watermark</button>
+    </div>
+  </div>
+</div>
+
 <script>
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    SDIO WORKSPACE v9.0 — COMPLETE APPLICATION LOGIC
    Phases 1-7 Implementation
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 (function() {
 'use strict';
 
-// â”€â”€â”€ PDF.js Setup â”€â”€â”€
+// ─── PDF.js Setup ───
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    TAXONOMY DATA (from v8.1 — preserved per L0 constraint)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 const TAXONOMY_DATA=[{c:"000",d:"General Admin"},{c:"001",d:"Transmittals"},{c:"002",d:"Meeting Minutes"},{c:"005",d:"Insurance — COI"},{c:"010",d:"Permits"},{c:"020",d:"Invoices (AR)"},{c:"030",d:"Bills (AP)"},{c:"040",d:"Payroll"},{c:"050",d:"Legal"},
 {c:"100",d:"Full Contract Set"},{c:"101",d:"Scope of Work"},{c:"102",d:"Full Spec Book"},{c:"103",d:"Spec Sections (Div 7)"},{c:"104",d:"Change Orders"},{c:"105",d:"Schedule (Gantt)"},{c:"110",d:"Safety Plan (SSSP)"},{c:"111",d:"Safety Manual"},
 {c:"200",d:"Full Project Set"},{c:"201",d:"Misc — Taper Plans"},{c:"202",d:"Misc — Mfr Details"},{c:"203",d:"Misc — Takeoff/Qty"},{c:"204",d:"Misc — Sketches"},{c:"205",d:"Misc — Photos"},{c:"206",d:"Misc — Markups"},{c:"207",d:"Prev Shop Dwgs"},
@@ -519,9 +545,9 @@ const TAXONOMY_DATA=[{c:"000",d:"General Admin"},{c:"001",d:"Transmittals"},{c:"
 
 const SPEC_CODES=[{v:"070150",l:"07 01 50 - Maint Membrane"},{v:"071100",l:"07 11 00 - Dampproofing"},{v:"071300",l:"07 13 00 - Sheet WP"},{v:"071400",l:"07 14 00 - Fluid WP"},{v:"072100",l:"07 21 00 - Thermal Insulation"},{v:"072200",l:"07 22 00 - Roof Insulation"},{v:"072400",l:"07 24 00 - EIFS"},{v:"072500",l:"07 25 00 - Weather Barriers"},{v:"072700",l:"07 27 00 - Air Barriers"},{v:"073113",l:"07 31 13 - Asphalt Shingles"},{v:"074113",l:"07 41 13 - Metal Roof Panels"},{v:"074213",l:"07 42 13 - Metal Wall Panels"},{v:"075200",l:"07 52 00 - Mod Bit Membrane"},{v:"075323",l:"07 53 23 - EPDM"},{v:"075419",l:"07 54 19 - PVC Roofing"},{v:"075423",l:"07 54 23 - TPO Roofing"},{v:"075600",l:"07 56 00 - Fluid Roof"},{v:"076113",l:"07 61 13 - Standing Seam"},{v:"076200",l:"07 62 00 - Sheet Metal Flash"},{v:"076500",l:"07 65 00 - Flexible Flashing"},{v:"077200",l:"07 72 00 - Roof Accessories"},{v:"079200",l:"07 92 00 - Joint Sealants"},{v:"321400",l:"32 14 00 - Pavers"}];
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    STATE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 const S = {
   dirHandle:null, files:[], selectedFile:null, selectedHandle:null,
   pdfDoc:null, pageCount:0, currentPage:1, zoom:1.0,
@@ -532,13 +558,14 @@ const S = {
   markupColor:'#e74c3c', markupFill:'transparent', markupStrokeW:2, markupOpacity:1, markupDash:'',
   markupFont:'Arial', markupFontSize:14, markupBold:false,
   // Undo/Redo (Phase 7)
-  undoStack:[], redoStack:[], maxHistory:200,
+  undoStack:[], redoStack:[], maxHistory:1000,
   // Page labels (Phase 3)
   pageLabels:{}, // pageNum -> string
   // Page rotations (Phase 5)
   pageRotations:{}, // pageNum -> degrees
   // Clipboard
   clipboard:[], thumbSelectMode:false, thumbSelected:[],
+  watermarkApplied:false,
   // Drawing state
   _drawing:false, _drawStart:null, _drawCurrent:null, _penPoints:[],
   // Pan
@@ -548,9 +575,9 @@ const S = {
   _nextId:1,
 };
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    DOM REFS & UTILITIES
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const viewport=$('#viewport');
@@ -575,15 +602,15 @@ function showModal(id){$('#modal-'+id).classList.add('show')}
 function closeModal(id){$('#modal-'+id).classList.remove('show')}
 window.closeModal=closeModal;
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 2: MENU BAR SYSTEM
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 const MENUS = {
   File:[
     {label:'Open Workspace…',icon:'folder_open',short:'Ctrl+O',action:()=>openDirectory()},
-    {label:'Refresh',icon:'refresh',short:'F5',action:()=>{scanDirectory();toast('âœ“ Refreshed')}},
+    {label:'Refresh',icon:'refresh',short:'F5',action:()=>{scanDirectory();toast('✓ Refreshed')}},
     {sep:true},
-    {label:'Export Page(s)…',icon:'download',action:()=>{if(!S.pdfDoc){toast('âš  No PDF');return}showModal('extract')}},
+    {label:'Export Page(s)…',icon:'download',action:()=>{if(!S.pdfDoc){toast('⚠ No PDF');return}showModal('extract')}},
     {label:'Save Markups',icon:'save',short:'Ctrl+S',action:saveMarkups},
     {label:'Load Markups',icon:'file_open',action:loadMarkups},
     {sep:true},
@@ -619,6 +646,11 @@ const MENUS = {
     {sep:true},
     {label:'Page Labels…',icon:'label',action:()=>{$('#label-page-num').textContent=S.currentPage;$('#label-input').value=S.pageLabels[S.currentPage]||'';showModal('label')}},
     {label:'Batch Label…',icon:'label',action:()=>showModal('label')},
+    {sep:true},
+    {label:'Flatten Markups',icon:'layers_clear',action:flattenMarkups},
+    {label:'Unflatten Markups',icon:'layers',action:unflattenMarkups},
+    {sep:true},
+    {label:'Add Watermark…',icon:'branding_watermark',action:()=>{if(!S.pdfDoc){toast('⚠ No PDF');return}showModal('watermark')}},
   ],
   Tools:[
     {label:'Select',icon:'near_me',short:'Esc',action:()=>setTool('select')},
@@ -633,7 +665,7 @@ const MENUS = {
     {label:'Ellipse',icon:'circle',short:'E',action:()=>setTool('ellipse')},
     {label:'Cloud',icon:'cloud',short:'C',action:()=>setTool('cloud')},
     {sep:true},
-    {label:'Measurements',icon:'straighten',stub:true,action:()=>toast('â³ Measurements — coming soon')},
+    {label:'Measurements',icon:'straighten',stub:true,action:()=>toast('⏳ Measurements — coming soon')},
   ],
 };
 
@@ -670,19 +702,19 @@ function buildMenuBar(){
 }
 function closeAllMenus(){$$('.menu-dropdown').forEach(d=>d.classList.remove('show'));$$('.menu-trigger').forEach(t=>t.classList.remove('open'))}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    FILE SYSTEM ACCESS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 async function openDirectory(){
-  if(!window.showDirectoryPicker){toast('âš  Use Chrome or Edge');return}
+  if(!window.showDirectoryPicker){toast('⚠ Use Chrome or Edge');return}
   try{
     S.dirHandle=await window.showDirectoryPicker({mode:'readwrite'});
     await scanDirectory();
-    toast('âœ“ Opened: '+S.dirHandle.name);
+    toast('✓ Opened: '+S.dirHandle.name);
     setStatus('Workspace: '+S.dirHandle.name);
     $('#workspace-label').style.display='block';
-    $('#workspace-label').textContent='âš¡ '+S.dirHandle.name;
-  }catch(e){if(e.name!=='AbortError')toast('âœ— '+e.message)}
+    $('#workspace-label').textContent='⚡ '+S.dirHandle.name;
+  }catch(e){if(e.name!=='AbortError')toast('✗ '+e.message)}
 }
 
 async function scanDirectory(){
@@ -737,9 +769,9 @@ function buildTree(entries,container,depth){
 
 $('#file-filter').addEventListener('input',e=>{S.filterText=e.target.value;renderFileTree()});
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    FILE SELECTION & LOADING
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 async function selectFile(entry){
   S.selectedFile=entry;S.selectedHandle=entry.handle;
   renderFileTree();
@@ -764,9 +796,9 @@ function clearCanvas(){
   viewport.innerHTML='';thumbList.innerHTML='';
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 1: PDF LOADING & AUTOCAD ZOOM/PAN ENGINE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 async function loadPdf(entry){
   setStatus('Loading PDF…');
   try{
@@ -795,9 +827,9 @@ async function loadPdf(entry){
     renderThumbnails();
     updateZoomDisplay();
     setStatus(`PDF: ${entry.name} — ${doc.numPages} page${doc.numPages>1?'s':''}`);
-    toast(`âœ“ PDF loaded: ${doc.numPages} pages`);
+    toast(`✓ PDF loaded: ${doc.numPages} pages`);
     updateSbRight();
-  }catch(e){toast('âœ— PDF load failed: '+e.message);setStatus('Error')}
+  }catch(e){toast('✗ PDF load failed: '+e.message);setStatus('Error')}
 }
 
 function renderAllPages(){
@@ -879,7 +911,7 @@ async function renderPdfPage(pn,canvas,wrapW,wrapH,dpr,userRot){
   }catch(e){}
 }
 
-/* â”€â”€â”€ Wheel: Scroll vs Zoom Mode (Phase 1) â”€â”€â”€ */
+/* ─── Wheel: Scroll vs Zoom Mode (Phase 1) ─── */
 // Default: plain wheel = scroll pages. Ctrl+wheel = zoom to cursor.
 // Toggle button switches so plain wheel = zoom (AutoCAD mode).
 S.wheelZoomMode = false; // false = scroll mode, true = zoom mode
@@ -918,7 +950,7 @@ viewport.addEventListener('wheel',e=>{
   }
 },{passive:false});
 
-/* â”€â”€â”€ Middle Mouse Pan (Phase 1) â”€â”€â”€ */
+/* ─── Middle Mouse Pan (Phase 1) ─── */
 viewport.addEventListener('mousedown',e=>{
   if(e.button===1){// Middle button
     e.preventDefault();S._middlePan=true;
@@ -937,7 +969,7 @@ window.addEventListener('mouseup',e=>{
   if(e.button===1||S._middlePan){S._middlePan=false;S._panStart=null;viewport.classList.remove('grabbing')}
 });
 
-/* â”€â”€â”€ Spacebar Pan â”€â”€â”€ */
+/* ─── Spacebar Pan ─── */
 let spaceDown=false;
 window.addEventListener('keydown',e=>{
   if(e.code==='Space'&&!e.target.matches('input,textarea,select,[contenteditable]')){
@@ -1011,9 +1043,9 @@ function jumpToPage(n){
   if(wr)wr.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    THUMBNAILS (Phase 1/3)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 async function renderThumbnails(){
   thumbList.innerHTML='';if(!S.pdfDoc)return;
   for(let i=1;i<=Math.min(S.pageCount,200);i++){
@@ -1022,7 +1054,7 @@ async function renderThumbnails(){
     item.dataset.page=i;
     const tc=document.createElement('canvas');item.appendChild(tc);
     if(S.pageLabels[i]){const lb=document.createElement('div');lb.className='thumb-label';lb.textContent=S.pageLabels[i];item.appendChild(lb)}
-    const chk=document.createElement('div');chk.className='thumb-check';chk.textContent='âœ“';item.appendChild(chk);
+    const chk=document.createElement('div');chk.className='thumb-check';chk.textContent='✓';item.appendChild(chk);
     const num=document.createElement('span');num.className='tnum';num.textContent=i;item.appendChild(num);
     item.addEventListener('click',e=>{
       if(S.thumbSelectMode){
@@ -1060,7 +1092,7 @@ function toggleThumbs(){
 function showThumbContextMenu(e,pageNum){
   const ctx=$('#ctx-menu');ctx.innerHTML='';
   [{label:'Edit Page Label…',action:()=>{$('#label-page-num').textContent=pageNum;$('#label-input').value=S.pageLabels[pageNum]||'';showModal('label')}},
-   {label:'Rotate 90° CW',action:()=>{S.pageRotations[pageNum]=((S.pageRotations[pageNum]||0)+90)%360;const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);renderThumbnails();toast('âœ“ Page '+pageNum+' rotated')}},
+   {label:'Rotate 90° CW',action:()=>{S.pageRotations[pageNum]=((S.pageRotations[pageNum]||0)+90)%360;const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);renderThumbnails();toast('✓ Page '+pageNum+' rotated')}},
    {sep:true},
    {label:'Extract This Page',action:()=>{$('#extract-range').value=String(pageNum);showModal('extract')}},
    {label:'Delete This Page',action:()=>{if(confirm('Delete page '+pageNum+'?'))deletePageRange([pageNum])}},
@@ -1080,24 +1112,24 @@ $('#btn-thumb-select-mode').addEventListener('click',()=>{
   toast(S.thumbSelectMode?'Multi-select ON — click pages':'Multi-select OFF');
 });
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    IMAGE & UNSUPPORTED
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 async function loadImage(entry){
   try{const file=await entry.handle.getFile();const url=URL.createObjectURL(file);
   thumbSidebar.classList.add('hidden');
   viewport.innerHTML='<div id="image-viewer"><img src="'+url+'"></div>';
-  setStatus('Image: '+entry.name);toast('âœ“ Image loaded')}catch(e){toast('âœ— '+e.message)}
+  setStatus('Image: '+entry.name);toast('✓ Image loaded')}catch(e){toast('✗ '+e.message)}
 }
 function showUnsupported(entry){
   thumbSidebar.classList.add('hidden');
-  viewport.innerHTML='<div id="empty-state"><div class="big-diamond" style="font-size:32px">ðŸ“„</div><div class="title" style="font-size:14px">'+entry.name+'</div><div class="sub">'+getExt(entry.name).toUpperCase()+' — Preview not available</div></div>';
+  viewport.innerHTML='<div id="empty-state"><div class="big-diamond" style="font-size:32px">📄</div><div class="title" style="font-size:14px">'+entry.name+'</div><div class="sub">'+getExt(entry.name).toUpperCase()+' — Preview not available</div></div>';
   setStatus('File: '+entry.name);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 4: MARKUP & ANNOTATION LAYER (SVG)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 function renderPageMarkups(pn,svg){
   const markups=S.markups[pn];if(!markups)return;
   markups.forEach(m=>renderMarkupToSVG(m,svg,pn));
@@ -1217,7 +1249,7 @@ function getMarkupStyle(){
   return{stroke:S.markupColor,fill:S.markupFill,strokeWidth:S.markupStrokeW,opacity:S.markupOpacity,dash:S.markupDash,fontSize:S.markupFontSize,fontFamily:S.markupFont,fontWeight:S.markupBold?'bold':'normal'};
 }
 
-/* â”€â”€â”€ SVG Markup Event Handlers â”€â”€â”€ */
+/* ─── SVG Markup Event Handlers ─── */
 function setupMarkupEvents(pn,svg){
   const tool=S.activeTool;
   if(tool==='select'){
@@ -1451,9 +1483,9 @@ function applyPropsToSelected(){
   autoSaveMarkups();
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 7: UNDO/REDO SYSTEM
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 function pushUndo(action){
   S.undoStack.push(action);
   if(S.undoStack.length>S.maxHistory)S.undoStack.shift();
@@ -1473,7 +1505,7 @@ function undo(){
     S.markups[action.page].push(action.markup);
   }
   refreshPageSVG(action.page);
-  updateUndoUI();toast('â†© Undo');autoSaveMarkups();
+  updateUndoUI();toast('↩ Undo');autoSaveMarkups();
 }
 
 function redo(){
@@ -1488,7 +1520,7 @@ function redo(){
     if(arr){const idx=arr.findIndex(m=>m.id===action.markup.id);if(idx>=0)arr.splice(idx,1)}
   }
   refreshPageSVG(action.page);
-  updateUndoUI();toast('â†ª Redo');autoSaveMarkups();
+  updateUndoUI();toast('↪ Redo');autoSaveMarkups();
 }
 
 function updateUndoUI(){
@@ -1497,18 +1529,18 @@ function updateUndoUI(){
   updateSbRight();
 }
 
-/* â”€â”€â”€ Clipboard â”€â”€â”€ */
+/* ─── Clipboard ─── */
 function copyMarkup(){
   if(!S.selectedMarkup)return;
   S.clipboard=[JSON.parse(JSON.stringify(S.selectedMarkup))];
-  toast('ðŸ“‹ Copied');
+  toast('📋 Copied');
 }
 function cutMarkup(){
   if(!S.selectedMarkup)return;
   S.clipboard=[JSON.parse(JSON.stringify(S.selectedMarkup))];
   removeMarkup(S.selectedMarkupPage,S.selectedMarkup.id);
   S.selectedMarkup=null;clearMarkupProps();
-  toast('âœ‚ Cut');
+  toast('✂ Cut');
 }
 function pasteMarkup(){
   if(!S.clipboard.length)return;
@@ -1518,7 +1550,7 @@ function pasteMarkup(){
     if(nm.data.x!==undefined){nm.data.x+=10;nm.data.y+=10}
     addMarkup(pn,nm);
   });
-  toast('ðŸ“‹ Pasted');
+  toast('📋 Pasted');
 }
 function deleteSelected(){
   if(!S.selectedMarkup)return;
@@ -1531,9 +1563,9 @@ function selectAllOnPage(){
   if(S.markups[pn]&&S.markups[pn].length){selectMarkupById(S.markups[pn][0].id,pn)}
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 3: PAGE LABEL SYSTEM
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 $('#btn-label-go').addEventListener('click',()=>{
   const pn=parseInt($('#label-page-num').textContent);
   const singleLabel=$('#label-input').value.trim();
@@ -1544,10 +1576,10 @@ $('#btn-label-go').addEventListener('click',()=>{
     // Batch label
     const pages=parsePageRange(range);
     pages.forEach((p,i)=>{S.pageLabels[p]=prefix+String(i+1).padStart(3,'0')});
-    toast('âœ“ Labeled '+pages.length+' pages');
+    toast('✓ Labeled '+pages.length+' pages');
   }else if(singleLabel){
     S.pageLabels[pn]=singleLabel;
-    toast('âœ“ Page '+pn+' labeled: '+singleLabel);
+    toast('✓ Page '+pn+' labeled: '+singleLabel);
   }
   saveLabels();
   const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);
@@ -1559,21 +1591,21 @@ $('#btn-label-clear').addEventListener('click',()=>{
   const pn=parseInt($('#label-page-num').textContent);
   delete S.pageLabels[pn];saveLabels();
   const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);
-  renderThumbnails();closeModal('label');toast('âœ“ Label cleared');
+  renderThumbnails();closeModal('label');toast('✓ Label cleared');
 });
 
 function saveLabels(){
   if(S.selectedFile)try{localStorage.setItem(fileHash(S.selectedFile.name)+'_labels',JSON.stringify(S.pageLabels))}catch(e){}}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 5: PAGE OPERATIONS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 function rotatePage(){
   if(!S.pdfDoc)return;
   const pn=S.currentPage;
   S.pageRotations[pn]=((S.pageRotations[pn]||0)+90)%360;
   const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);
-  renderThumbnails();toast('âœ“ Page '+pn+' rotated');
+  renderThumbnails();toast('✓ Page '+pn+' rotated');
 }
 
 async function insertBlankPage(){
@@ -1590,8 +1622,8 @@ async function insertBlankPage(){
     await writable.write(bytes);await writable.close();
     // Reload
     await selectFile(S.selectedFile);
-    toast('âœ“ Blank page inserted after page '+S.currentPage);
-  }catch(e){toast('âœ— '+e.message)}
+    toast('✓ Blank page inserted after page '+S.currentPage);
+  }catch(e){toast('✗ '+e.message)}
 }
 
 async function deletePages(){
@@ -1615,15 +1647,15 @@ async function deletePageRange(pages){
     const writable=await S.selectedHandle.createWritable();
     await writable.write(bytes);await writable.close();
     await selectFile(S.selectedFile);
-    toast('âœ“ Deleted '+pages.length+' page(s)');
-  }catch(e){toast('âœ— '+e.message)}
+    toast('✓ Deleted '+pages.length+' page(s)');
+  }catch(e){toast('✗ '+e.message)}
 }
 
 // Extract pages
 $('#btn-extract-go').addEventListener('click',async()=>{
   const range=$('#extract-range').value;
   const pages=parsePageRange(range);
-  if(!pages.length){toast('âš  Invalid range');return}
+  if(!pages.length){toast('⚠ Invalid range');return}
   try{
     const file=await S.selectedHandle.getFile();
     const srcData=await file.arrayBuffer();
@@ -1639,14 +1671,14 @@ $('#btn-extract-go').addEventListener('click',async()=>{
     const baseName=S.selectedFile?S.selectedFile.name.replace(/\.pdf$/i,''):'extract';
     a.download=baseName+'_pages_'+range.replace(/[^0-9,-]/g,'')+'.pdf';
     a.click();
-    closeModal('extract');toast('âœ“ Extracted '+pages.length+' pages');
-  }catch(e){toast('âœ— '+e.message)}
+    closeModal('extract');toast('✓ Extracted '+pages.length+' pages');
+  }catch(e){toast('✗ '+e.message)}
 });
 
 // Split document
 $('#btn-split-go').addEventListener('click',async()=>{
   const count=parseInt($('#split-count').value)||10;
-  if(!S.pdfDoc){toast('âš  No PDF');return}
+  if(!S.pdfDoc){toast('⚠ No PDF');return}
   try{
     const file=await S.selectedHandle.getFile();
     const srcData=await file.arrayBuffer();
@@ -1665,8 +1697,8 @@ $('#btn-split-go').addEventListener('click',async()=>{
       const baseName=S.selectedFile?S.selectedFile.name.replace(/\.pdf$/i,''):'split';
       a.download=`${baseName}_part${part}.pdf`;a.click();part++;
     }
-    closeModal('split');toast(`âœ“ Split into ${part-1} files`);
-  }catch(e){toast('âœ— '+e.message)}
+    closeModal('split');toast(`✓ Split into ${part-1} files`);
+  }catch(e){toast('✗ '+e.message)}
 });
 
 function parsePageRange(s){
@@ -1680,9 +1712,9 @@ function parsePageRange(s){
   return[...new Set(pages)].sort((a,b)=>a-b);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    MARKUP SAVE / LOAD & PERSISTENCE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 function saveMarkupState(){
   return JSON.parse(JSON.stringify(S.markups));
 }
@@ -1698,11 +1730,11 @@ function autoSaveMarkups(){
 function saveMarkups(){
   let has=false;
   Object.values(S.markups).forEach(arr=>{if(arr&&arr.length)has=true});
-  if(!has){toast('âš  No markups');return}
+  if(!has){toast('⚠ No markups');return}
   const blob=new Blob([JSON.stringify(S.markups,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=(S.selectedFile?S.selectedFile.name.replace(/\.[^.]+$/,''):'markups')+'_markups.json';
-  a.click();toast('âœ“ Markups saved');
+  a.click();toast('✓ Markups saved');
 }
 
 function loadMarkups(){
@@ -1714,15 +1746,15 @@ function loadMarkups(){
       const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm);
       // Actually render them
       for(let pn=1;pn<=S.pageCount;pn++)refreshPageSVG(pn);
-      toast('âœ“ Markups loaded');autoSaveMarkups();
-    }catch(e){toast('âœ— Invalid file')}
+      toast('✓ Markups loaded');autoSaveMarkups();
+    }catch(e){toast('✗ Invalid file')}
   });
   input.click();
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    PHASE 6: RENAME BUTTON FIX & STATE MANAGEMENT
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 // Populate datalists
 const codeListEl=$('#codeList');
 TAXONOMY_DATA.forEach(i=>{const o=document.createElement('option');o.value=i.c;o.label=i.c+' — '+i.d;codeListEl.appendChild(o)});
@@ -1819,23 +1851,161 @@ btnRename.addEventListener('click',()=>{
 $('#btn-rename-confirm-go').addEventListener('click',async()=>{
   closeModal('rename-confirm');
   const newName=$('#rename-new-name').textContent;
+  const oldName=S.selectedHandle.name;
   const cls=$('#r-class').value;if(cls)addRecent(cls);
   try{
-    const fh=await S.dirHandle.getFileHandle(S.selectedHandle.name);
+    const fh=await S.dirHandle.getFileHandle(oldName);
     const fd=await fh.getFile();const buf=await fd.arrayBuffer();
+    // Create renamed file
     const nfh=await S.dirHandle.getFileHandle(newName,{create:true});
     const w=await nfh.createWritable();await w.write(buf);await w.close();
-    try{await S.dirHandle.removeEntry(S.selectedHandle.name)}catch(e){}
+    // Archive original to _archive subfolder
+    try{
+      const archDir=await S.dirHandle.getDirectoryHandle('_archive',{create:true});
+      const afh=await archDir.getFileHandle(oldName,{create:true});
+      const aw=await afh.createWritable();await aw.write(buf);await aw.close();
+    }catch(ae){console.warn('Archive failed:',ae)}
+    // Remove original
+    try{await S.dirHandle.removeEntry(oldName)}catch(e){}
     S.selectedHandle=nfh;
-    toast('âœ“ Renamed to: '+newName);
+    toast('✓ Renamed & archived: '+newName);
     await scanDirectory();setStatus('Renamed: '+newName);
     $('#r-desc').value='';updateFilename();
-  }catch(e){toast('âœ— Rename failed: '+e.message)}
+  }catch(e){toast('✗ Rename failed: '+e.message)}
 });
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
+   FLATTEN / UNFLATTEN MARKUPS
+   ═══════════════════════════════════════════════════════════════ */
+async function flattenMarkups(){
+  if(!S.pdfDoc){toast('⚠ No PDF');return}
+  const hasMarkups=Object.values(S.markups).some(arr=>arr&&arr.length);
+  if(!hasMarkups){toast('⚠ No markups to flatten');return}
+  try{
+    toast('⏳ Flattening…');
+    // Save markup state for unflatten
+    const markupBackup=JSON.parse(JSON.stringify(S.markups));
+    localStorage.setItem('sdio-flatten-backup',JSON.stringify(markupBackup));
+    // Get original PDF bytes
+    const page1=await S.pdfDoc.getPage(1);
+    const pdfBytes=await S.pdfDoc.getData();
+    const pdfDoc=await PDFLib.PDFDocument.load(pdfBytes);
+    const pages=pdfDoc.getPages();
+    const dpr=window.devicePixelRatio||1;
+    for(let pn=1;pn<=S.pageCount;pn++){
+      const marks=S.markups[pn];
+      if(!marks||!marks.length)continue;
+      const page=pages[pn-1];
+      const{width,height}=page.getSize();
+      // Render SVG markups to a canvas
+      const svgEl=document.querySelector(`svg.markup-layer[data-page="${pn}"]`);
+      if(!svgEl)continue;
+      const svgClone=svgEl.cloneNode(true);
+      svgClone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+      svgClone.classList.remove('tool-active');
+      const svgStr=new XMLSerializer().serializeToString(svgClone);
+      const svgBlob=new Blob([svgStr],{type:'image/svg+xml;charset=utf-8'});
+      const url=URL.createObjectURL(svgBlob);
+      const img=new Image();
+      await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url});
+      const cvs=document.createElement('canvas');
+      cvs.width=width*2;cvs.height=height*2;
+      const ctx=cvs.getContext('2d');
+      ctx.drawImage(img,0,0,cvs.width,cvs.height);
+      URL.revokeObjectURL(url);
+      const pngBytes=await fetch(cvs.toDataURL('image/png')).then(r=>r.arrayBuffer());
+      const pngImg=await pdfDoc.embedPng(pngBytes);
+      page.drawImage(pngImg,{x:0,y:0,width:width,height:height,opacity:1});
+    }
+    // Save flattened PDF
+    const flatBytes=await pdfDoc.save();
+    const blob=new Blob([flatBytes],{type:'application/pdf'});
+    if(S.selectedHandle&&S.dirHandle){
+      const fh=await S.dirHandle.getFileHandle(S.selectedHandle.name,{create:true});
+      const wr=await fh.createWritable();await wr.write(blob);await wr.close();
+      // Clear markups since they're now burned in
+      S.markups={};autoSaveMarkups();
+      // Reload the PDF
+      const arr=await blob.arrayBuffer();
+      S.pdfDoc=await pdfjsLib.getDocument({data:arr}).promise;
+      renderAllPages();renderThumbnails();
+      toast('✓ Markups flattened into PDF');
+    }else{
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+      a.download='flattened.pdf';a.click();
+      toast('✓ Flattened PDF downloaded');
+    }
+  }catch(e){console.error(e);toast('✗ Flatten failed: '+e.message)}
+}
+
+async function unflattenMarkups(){
+  const backup=localStorage.getItem('sdio-flatten-backup');
+  if(!backup){toast('⚠ No flatten backup found');return}
+  try{
+    const restored=JSON.parse(backup);
+    S.markups=restored;
+    autoSaveMarkups();
+    refreshAllSVGs();
+    toast('✓ Markups restored from backup ('+Object.values(restored).reduce((a,b)=>a+(b?b.length:0),0)+' markups)');
+  }catch(e){toast('✗ Unflatten failed: '+e.message)}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WATERMARK SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+async function applyWatermark(){
+  if(!S.pdfDoc){toast('⚠ No PDF');return}
+  const text=$('#wm-text').value.trim()||'DRAFT';
+  const fontSize=parseInt($('#wm-size').value)||72;
+  const rotation=parseInt($('#wm-rotation').value)||(-45);
+  const opacity=(parseInt($('#wm-opacity').value)||25)/100;
+  const color=$('#wm-color').value||'#888888';
+  const allPages=$('#wm-all-pages').checked;
+  try{
+    toast('⏳ Applying watermark…');
+    const pdfBytes=await S.pdfDoc.getData();
+    const pdfDoc=await PDFLib.PDFDocument.load(pdfBytes);
+    const pages=pdfDoc.getPages();
+    // Parse hex color
+    const r=parseInt(color.slice(1,3),16)/255;
+    const g=parseInt(color.slice(3,5),16)/255;
+    const b=parseInt(color.slice(5,7),16)/255;
+    const font=await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    const pageList=allPages?pages:[pages[S.currentPage-1]];
+    pageList.forEach(page=>{
+      const{width,height}=page.getSize();
+      const tw=font.widthOfTextAtSize(text,fontSize);
+      page.drawText(text,{
+        x:width/2-tw/2*Math.cos(rotation*Math.PI/180),
+        y:height/2-fontSize/2,
+        size:fontSize,
+        font:font,
+        color:PDFLib.rgb(r,g,b),
+        opacity:opacity,
+        rotate:PDFLib.degrees(rotation),
+      });
+    });
+    const wmBytes=await pdfDoc.save();
+    const blob=new Blob([wmBytes],{type:'application/pdf'});
+    if(S.selectedHandle&&S.dirHandle){
+      const fh=await S.dirHandle.getFileHandle(S.selectedHandle.name,{create:true});
+      const wr=await fh.createWritable();await wr.write(blob);await wr.close();
+      const arr=await blob.arrayBuffer();
+      S.pdfDoc=await pdfjsLib.getDocument({data:arr}).promise;
+      renderAllPages();renderThumbnails();
+      toast('✓ Watermark applied to '+(allPages?'all pages':'page '+S.currentPage));
+    }else{
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+      a.download='watermarked.pdf';a.click();
+      toast('✓ Watermarked PDF downloaded');
+    }
+    closeModal('watermark');
+  }catch(e){console.error(e);toast('✗ Watermark failed: '+e.message)}
+}
+
+/* ═══════════════════════════════════════════════════════════════
    TOOL SWITCHING
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 function setTool(tool){
   S.activeTool=tool;
   $$('.tool-btn').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
@@ -1851,9 +2021,9 @@ function setTool(tool){
 $$('.tool-btn').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
 $$('.tool-btn-tc').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    QUICK COLORS & LINE WEIGHTS (Properties Tab)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 const QUICK_COLORS=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#00a8ff','#9b59b6','#ecf0f1','#2c3e50','#000000','#ffffff'];
 function renderQuickColors(){
   const strip=$('#quick-colors');strip.innerHTML='';
@@ -1878,9 +2048,9 @@ function renderLineWeights(){
 }
 renderLineWeights();
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    TAB SWITCHING
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 $$('.tab-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     $$('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -1889,12 +2059,12 @@ $$('.tab-btn').forEach(btn=>{
   });
 });
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    TOOLBAR BUTTONS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 $('#btn-open').addEventListener('click',openDirectory);
 $('#btn-open-inline').addEventListener('click',openDirectory);
-$('#btn-refresh').addEventListener('click',async()=>{await scanDirectory();toast('âœ“ Refreshed')});
+$('#btn-refresh').addEventListener('click',async()=>{await scanDirectory();toast('✓ Refreshed')});
 $('#btn-undo').addEventListener('click',undo);
 $('#btn-redo').addEventListener('click',redo);
 $('#btn-first-page').addEventListener('click',()=>jumpToPage(1));
@@ -1908,14 +2078,14 @@ zoomDisplay.addEventListener('click',()=>setZoom(1));
 $('#btn-fit-width').addEventListener('click',fitWidth);
 $('#btn-fit-page').addEventListener('click',fitPage);
 
-// Wheel mode toggle: Scroll â†” Zoom
+// Wheel mode toggle: Scroll ↔ Zoom
 function toggleWheelMode(){
   S.wheelZoomMode=!S.wheelZoomMode;
   const btn=$('#btn-wheel-mode');
   btn.classList.toggle('active',S.wheelZoomMode);
   btn.title=S.wheelZoomMode?'Mode: Zoom (click to switch to Scroll)':'Mode: Scroll (click to switch to Zoom)';
   btn.querySelector('.material-icons-round').textContent=S.wheelZoomMode?'zoom_in':'swap_vert';
-  toast(S.wheelZoomMode?'ðŸ” Wheel = Zoom (Ctrl+scroll to scroll)':'ðŸ“œ Wheel = Scroll (Ctrl+scroll to zoom)');
+  toast(S.wheelZoomMode?'🔍 Wheel = Zoom (Ctrl+scroll to scroll)':'📜 Wheel = Scroll (Ctrl+scroll to zoom)');
 }
 $('#btn-wheel-mode').addEventListener('click',toggleWheelMode);
 $('#btn-thumb-toggle').addEventListener('click',toggleThumbs);
@@ -1925,14 +2095,20 @@ $('#btn-load-markups').addEventListener('click',loadMarkups);
 // Toolbox page ops
 $('#tc-rotate').addEventListener('click',rotatePage);
 $('#tc-insert-blank').addEventListener('click',insertBlankPage);
-$('#tc-extract').addEventListener('click',()=>{if(S.pdfDoc)showModal('extract');else toast('âš  No PDF')});
-$('#tc-split').addEventListener('click',()=>{if(S.pdfDoc)showModal('split');else toast('âš  No PDF')});
+$('#tc-extract').addEventListener('click',()=>{if(S.pdfDoc)showModal('extract');else toast('⚠ No PDF')});
+$('#tc-split').addEventListener('click',()=>{if(S.pdfDoc)showModal('split');else toast('⚠ No PDF')});
 $('#tc-delete-page').addEventListener('click',deletePages);
 $('#tc-labels').addEventListener('click',()=>{$('#label-page-num').textContent=S.currentPage;$('#label-input').value=S.pageLabels[S.currentPage]||'';showModal('label')});
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Flatten / Unflatten / Watermark
+$('#tc-flatten').addEventListener('click',flattenMarkups);
+$('#tc-unflatten').addEventListener('click',unflattenMarkups);
+$('#tc-watermark').addEventListener('click',()=>{if(S.pdfDoc)showModal('watermark');else toast('⚠ No PDF')});
+$('#btn-wm-go').addEventListener('click',applyWatermark);
+
+/* ═══════════════════════════════════════════════════════════════
    PHASE 7: KEYBOARD SHORTCUTS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 window.addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea,select,[contenteditable]'))return;
   const key=e.key.toLowerCase();
@@ -1980,16 +2156,16 @@ window.addEventListener('keydown',e=>{
   // Thumbnails (Alt+T)
   if(e.altKey&&key==='t'){e.preventDefault();toggleThumbs()}
 
-  // F2 â†’ taxonomy tab
+  // F2 → taxonomy tab
   if(key==='f2'){e.preventDefault();$$('.tab-btn').forEach(b=>b.classList.remove('active'));$$('.tab-content').forEach(c=>c.classList.remove('active'));$$('.tab-btn')[1].classList.add('active');$('#tab-taxonomy').classList.add('active')}
 });
 
 // Context menu dismiss
 document.addEventListener('click',()=>$('#ctx-menu').classList.remove('show'));
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ═══════════════════════════════════════════════════════════════
    INIT
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════════════════════ */
 buildMenuBar();
 $('#r-date').value=todayISO();
 updateFilename();validateRenameFields();
