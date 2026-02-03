@@ -1,159 +1,105 @@
-# ValidKernel Command Progress
-## Command: L0-CMD-SDIO-WS-V9
-## Issued: 2026-02-02
-## Expiry: 2026-03-02T23:59:59Z
-## Predecessor: SDIO Workspace v8.1 (sdio-workspace-v8.html)
-
----
-
-## MISSION: SDIO Workspace v9.0 — Bluebeam-Class PDF Platform
-
-Transform SDIO Workspace from a file-renaming tool with basic PDF preview into a Bluebeam Revu-class PDF workspace for construction shop drawing production.
+# OMNI-VIEW v6.0 CAD Edition — Claude Session Log
+## Evolved from: L0-CMD-SDIO-WS-V9
+## Date: 2026-02-03
+## Authority: Armand Lefebvre, L0 Governance (ROOT)
 
 ---
 
 ## EXECUTION STATUS
 
-| Phase | Status | Started | Completed | Tasks |
-|-------|--------|---------|-----------|-------|
-| 1. Core Infrastructure — Zoom/Pan Engine | ⬜ NOT STARTED | - | - | 0/8 |
-| 2. Menu Bar System | ⬜ NOT STARTED | - | - | 0/7 |
-| 3. Page Label System | ⬜ NOT STARTED | - | - | 0/6 |
-| 4. Markup & Annotation Layer | ⬜ NOT STARTED | - | - | 0/14 |
-| 5. Enhanced Page Operations | ⬜ NOT STARTED | - | - | 0/5 |
-| 6. Rename Button Fix & State Mgmt | ⬜ NOT STARTED | - | - | 0/4 |
-| 7. Edit Operations & Shortcuts | ⬜ NOT STARTED | - | - | 0/6 |
-| **TOTAL** | **NOT STARTED** | - | - | **0/50** |
+| Phase | Status | Tasks |
+|-------|--------|-------|
+| 1. Core Infrastructure — Zoom/Pan Engine | ✅ COMPLETE | 8/8 |
+| 2. Menu Bar System | ✅ COMPLETE | 7/7 |
+| 3. Page Label System | ✅ COMPLETE | 6/6 |
+| 4. Markup & Annotation Layer | ✅ COMPLETE | 14/14 |
+| 5. Enhanced Page Operations | ✅ COMPLETE | 5/5 |
+| 6. Rename Button Fix & State Mgmt | ✅ COMPLETE | 4/4 |
+| 7. Edit Operations & Shortcuts | ✅ COMPLETE | 6/6 |
+| 8. Feature Enhancements (post-v9) | ✅ COMPLETE | 8/8 |
+| 9. CAD Module Injection (v6.0) | ✅ COMPLETE | 6/6 |
+| 10. Bug Fixes (FIX-002, FIX-003) | ✅ COMPLETE | 8/8 |
+| **TOTAL** | **COMPLETE** | **72/72** |
 
 ---
 
-## CHECKPOINT LOG
+## SESSION LOG
 
-_No checkpoints recorded yet._
+### Session 1 — 2026-02-02: v9.0 Build + Sync
+- Synced local Windows changes to GitHub main
+- Pushed 9 new files including `sdio-workspace-v9 (2).html`
+- Cleaned up Word temp files, added `.gitignore`
 
----
+### Session 2 — 2026-02-02: L0-CMD-SDIO-WS-V9-FIX-002
+**Defects fixed:**
+1. **Drawing tools non-functional** — `setupMarkupEvents()` set inline `pointer-events:none` but never cleared it when switching to drawing tools. Fix: added `svg.style.pointerEvents=''` before `svg.classList.add('tool-active')`.
+2. **Mojibake throughout file** — Triple-pass fix:
+   - Pass 1: Simple string replacements (`â€"` → `—`, etc.)
+   - Pass 2: 51 double-encoded em dashes in TAXONOMY_DATA
+   - Pass 3: 3,079 remaining double-encoded UTF-8 sequences via full Win-1252 reverse mapping
 
-## PHASE 1: Core Infrastructure — Navigation & Zoom Engine
+### Session 3 — 2026-02-02: Feature Enhancements
+**Features added:**
+1. Archive tool on rename (moves old file to `_archive/` subfolder)
+2. Undo depth increased from 200 → 1000
+3. Flatten / Unflatten markups into PDF (using pdf-lib)
+4. Watermark tool (text, opacity, all pages)
+5. SDIO panel layout fix (Client/Year/Job# flex ratios)
+6. Lazy rendering via IntersectionObserver (200% rootMargin)
+7. Enhanced page extraction (All-in-one / Each-separate radio toggle)
+8. Watermark stale handle fix (fresh handle from dirHandle every time)
 
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 1.1 | AutoCAD zoom: scroll wheel zooms to cursor position | CRITICAL | ⬜ NOT STARTED |
-| 1.2 | AutoCAD pan: middle mouse button click-and-drag pan | CRITICAL | ⬜ NOT STARTED |
-| 1.3 | Fit Width button — scale pages to fill preview width | CRITICAL | ⬜ NOT STARTED |
-| 1.4 | Fit Page button — scale single page to fit viewport | HIGH | ⬜ NOT STARTED |
-| 1.5 | First Page / Last Page jump buttons in toolbar | HIGH | ⬜ NOT STARTED |
-| 1.6 | Zoom In (+) and Zoom Out (-) toolbar buttons | HIGH | ⬜ NOT STARTED |
-| 1.7 | Zoom percentage indicator in toolbar (e.g. 125%) | MEDIUM | ⬜ NOT STARTED |
-| 1.8 | Fix thumbnail min-width: enforce 110px min, never collapse | CRITICAL | ⬜ NOT STARTED |
+### Session 4 — 2026-02-02: File Preview Support
+**Added preview support for:**
+- Spreadsheets (SheetJS): xlsx, xls, csv, ods
+- Word documents (Mammoth.js): docx
+- Text/code (marked.js): txt, md, json, xml, yaml, py, js, ts, css, html, log, ini, cfg, toml, rtf
+- Extended image formats: webp, ico, avif
 
-**Checkpoints:** 001 (after 1.1-1.3), 002 (after 1.4-1.6), 003 (after 1.7-1.8)
+### Session 5 — 2026-02-03: v6.0 CAD Edition
+**L0 CAD MODULE INJECTION — full implementation:**
+1. **Snap Engine** — End/Mid/Perp/Near OSNAP modes with visual indicators (yellow square for endpoints, cyan diamond for midpoints)
+2. **Scale Calibration** — 2-point calibration, supports ft/in/m/mm
+3. **CAD Polyline & Polygon** — Click-to-place with snap support, double-click to finish
+4. **Magic Wand** — BFS flood fill + Moore neighborhood contour tracing + RDP simplification → auto-trace polygons
+5. **DXF Export** — HEADER/TABLES/ENTITIES/EOF with layers, ACI color mapping, per-page Y-axis inversion
+6. **Layer Manager** — Default layers "0" and "MARKUP", add custom layers with color
+7. **Measure Tool** — 2-point distance in calibrated or pixel units
+8. **Coordinate Display** — Live X/Y readout
+9. **CAD tab UI** — Full panel with calibration, snap settings, tools grid, layers, export
 
----
+### Session 6 — 2026-02-03: L0-CMD-OMNIVIEW-FIX-003
+**Three defects fixed:**
+1. **Magic Wand click not tracing** — `activateMagicWand()` set `S.activeTool` directly without calling `setTool()`, so SVG handlers were never rebound. Same fix applied to `startCalibration()` and `startMeasure()`.
+2. **DXF Export not working** — `function yInv()` inside for-loop in strict mode caused scoping issues. Converted to arrow functions. Added try-catch with toast error feedback. Delayed `URL.revokeObjectURL`. Added entity count validation.
+3. **Zoom changes pages** — `setZoom()` called `renderAllPages()` which destroyed all DOM. Fix: save `S.currentPage` before render, `scrollIntoView({behavior:'instant'})` after.
 
-## PHASE 2: Menu Bar System
-
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 2.1 | Menu bar HTML/CSS: File, Edit, View, Document, Tools | CRITICAL | ⬜ NOT STARTED |
-| 2.2 | File menu: Open Project, Save As, Export Page(s), Print | HIGH | ⬜ NOT STARTED |
-| 2.3 | Edit menu: Undo, Redo, Cut, Copy, Paste, Delete, Select All | HIGH | ⬜ NOT STARTED |
-| 2.4 | View menu: Zoom controls, Fit Width/Page, Single/Continuous, Thumbnails, Grid | HIGH | ⬜ NOT STARTED |
-| 2.5 | Document menu: Rotate Page, Insert Blank, Extract Pages, Split, Page Labels | HIGH | ⬜ NOT STARTED |
-| 2.6 | Tools menu: Text Box, Callout, Pen, Highlight, Shapes, Cloud, Measurements (stub) | HIGH | ⬜ NOT STARTED |
-| 2.7 | Keyboard shortcut dispatch: T, W, N, Q, P, H, L, A, R, E, Ctrl+Z/Y | MEDIUM | ⬜ NOT STARTED |
-
-**Checkpoints:** 004 (after 2.1-2.3), 005 (after 2.4-2.7)
-
----
-
-## PHASE 3: Page Label System
-
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 3.1 | Page label data structure: Map<pageNum, {label, color?}> | CRITICAL | ⬜ NOT STARTED |
-| 3.2 | Right-click thumbnail to add/edit page label | HIGH | ⬜ NOT STARTED |
-| 3.3 | Label display on thumbnail (overlay text on thumb) | HIGH | ⬜ NOT STARTED |
-| 3.4 | Label display in toolbar page indicator | MEDIUM | ⬜ NOT STARTED |
-| 3.5 | Batch label tool: label range of pages at once | MEDIUM | ⬜ NOT STARTED |
-| 3.6 | Persist labels in localStorage keyed by filename hash | HIGH | ⬜ NOT STARTED |
-
-**Checkpoints:** 006 (after 3.1-3.3), 007 (after 3.4-3.6)
-
----
-
-## PHASE 4: Markup & Annotation Layer
-
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 4.1 | SVG overlay layer: one SVG per page, positioned over canvas | CRITICAL | ⬜ NOT STARTED |
-| 4.2 | Tool state machine: select, text, pen, line, rect, ellipse, cloud | CRITICAL | ⬜ NOT STARTED |
-| 4.3 | Text Box tool (T): click to place, type text, drag to resize | CRITICAL | ⬜ NOT STARTED |
-| 4.4 | Callout tool (Q): text box with leader line to point | HIGH | ⬜ NOT STARTED |
-| 4.5 | Pen tool (P): freehand SVG path drawing | HIGH | ⬜ NOT STARTED |
-| 4.6 | Highlight tool (H): semi-transparent rectangle drag | HIGH | ⬜ NOT STARTED |
-| 4.7 | Line tool (L): click start, click end | HIGH | ⬜ NOT STARTED |
-| 4.8 | Arrow tool (A): line with arrowhead | HIGH | ⬜ NOT STARTED |
-| 4.9 | Rectangle tool (R): drag to draw rectangle | HIGH | ⬜ NOT STARTED |
-| 4.10 | Ellipse tool (E): drag to draw ellipse | MEDIUM | ⬜ NOT STARTED |
-| 4.11 | Cloud tool: scalloped rectangle markup | HIGH | ⬜ NOT STARTED |
-| 4.12 | Select tool: click to select, drag to move, Delete to remove | CRITICAL | ⬜ NOT STARTED |
-| 4.13 | Color picker for markup stroke/fill | MEDIUM | ⬜ NOT STARTED |
-| 4.14 | Line weight selector for markup tools | MEDIUM | ⬜ NOT STARTED |
-
-**Checkpoints:** 008 (after 4.1-4.3), 009 (after 4.4-4.6), 010 (after 4.7-4.9), 011 (after 4.10-4.12), 012 (after 4.13-4.14)
+**Also fixed in earlier session:**
+- Magic Wand starburst lines — replaced angle-from-centroid sort with Moore neighborhood contour tracing
+- DXF pageDims property: `.height` → `.h`
+- Flood fill 500k pixel cap to prevent tracing entire background
 
 ---
 
-## PHASE 5: Enhanced Page Operations
+## GIT HISTORY (chronological)
 
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 5.1 | Rotate page: 90/180/270 degree rotation per page | HIGH | ⬜ NOT STARTED |
-| 5.2 | Insert blank page: add blank after current page | MEDIUM | ⬜ NOT STARTED |
-| 5.3 | Multi-page extract: visual selection + typed range (from v8.1) | CRITICAL | ⬜ NOT STARTED |
-| 5.4 | Split document: split by page count or page range | MEDIUM | ⬜ NOT STARTED |
-| 5.5 | Delete page(s): remove selected pages from document | HIGH | ⬜ NOT STARTED |
-
-**Checkpoints:** 013 (after 5.1-5.3), 014 (after 5.4-5.5)
-
----
-
-## PHASE 6: Rename Button Fix & State Management
-
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 6.1 | Gray out RENAME button until classification code is filled | CRITICAL | ⬜ NOT STARTED |
-| 6.2 | Validate all required fields before enabling rename | HIGH | ⬜ NOT STARTED |
-| 6.3 | Visual feedback: highlight incomplete required fields in red border | MEDIUM | ⬜ NOT STARTED |
-| 6.4 | Confirmation dialog with old name → new name preview | MEDIUM | ⬜ NOT STARTED |
-
-**Checkpoints:** 015 (after 6.1-6.4)
-
----
-
-## PHASE 7: Edit Operations & Keyboard Shortcuts
-
-| # | Task | Priority | Status |
-|---|------|----------|--------|
-| 7.1 | Undo stack: track markup add/remove/move operations | HIGH | ⬜ NOT STARTED |
-| 7.2 | Redo stack: complement to undo | HIGH | ⬜ NOT STARTED |
-| 7.3 | Ctrl+Z / Ctrl+Y keyboard shortcuts for undo/redo | HIGH | ⬜ NOT STARTED |
-| 7.4 | Tool switching shortcuts: T, P, H, L, A, R, E, Q, Esc for select | HIGH | ⬜ NOT STARTED |
-| 7.5 | Delete key removes selected markup | HIGH | ⬜ NOT STARTED |
-| 7.6 | Ctrl+A selects all markups on current page | MEDIUM | ⬜ NOT STARTED |
-
-**Checkpoints:** 016 (after 7.1-7.3), 017 (after 7.4-7.6)
+```
+7e5ce38 feat: OMNI-VIEW v6.0 CAD Edition — Snap engine, Magic Wand, DXF export
+3307cda fix: Magic Wand starburst lines + DXF export broken page dims
+07745c4 fix: Magic Wand + Calibrate + Measure SVG event rebinding
+c58e2a0 Revert "fix: Magic Wand + Calibrate + Measure SVG event rebinding"
+d0effd1 fix: Magic Wand click, DXF export, zoom page jump (FIX-003)
+```
 
 ---
 
 ## RESUME INSTRUCTIONS
 
-To continue this command in a new session:
-1. FIRST ACTION: Read this SDIO-WS-V9-PROGRESS.md file
-2. Read the L0-CMD-SDIO-WS-V9.docx command document
-3. Check last checkpoint in the CHECKPOINT LOG above
-4. Continue from the next NOT STARTED task
-5. Do NOT re-implement completed tasks
-6. Each phase must produce a working HTML file
-7. Update this file after each checkpoint
-8. If ambiguous, FAIL-CLOSED and ask L0 for clarification
+To continue in a new session:
+1. Read this progress file first
+2. Read `README-HANDOFF.md` for architecture overview
+3. Read `sdio-workspace-v9 (2).html` — the primary working file (~2900 lines)
+4. Check git log for latest commits
+5. All phases complete — focus on bug fixes or new feature requests
+6. Single HTML file constraint — no separate files
+7. If ambiguous, FAIL-CLOSED and ask L0
