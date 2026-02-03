@@ -2501,8 +2501,6 @@ function showSnapIndicator(svg,snap){
 function startCalibration(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
   S.cadCalibrating=true;S.cadCalPoints=[];
-  // Re-bind SVG events so calibration clicks are captured
-  for(let i=1;i<=S.pageCount;i++){const svg=document.querySelector(`svg.markup-layer[data-page="${i}"]`);if(svg)setupMarkupEvents(i,svg)}
   toast('📐 Click two points on the PDF to calibrate scale');
   setStatus('CALIBRATING: Click point 1 of 2');
 }
@@ -2561,8 +2559,6 @@ viewport.addEventListener('mousemove',e=>{
 function startMeasure(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
   S.cadMeasuring=true;S.cadMeasurePoints=[];
-  // Re-bind SVG events so measure clicks are captured
-  for(let i=1;i<=S.pageCount;i++){const svg=document.querySelector(`svg.markup-layer[data-page="${i}"]`);if(svg)setupMarkupEvents(i,svg)}
   toast('📏 Click two points to measure distance');
   setStatus('MEASURE: Click point 1 of 2');
 }
@@ -2589,7 +2585,7 @@ $('#btn-measure').addEventListener('click',startMeasure);
 /* ─── MAGIC WAND — Flood Fill + RDP Simplification ─── */
 function activateMagicWand(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
-  setTool('magic-wand');
+  S.activeTool='magic-wand';
   toast('🪄 Click on a region to auto-trace its boundary');
   setStatus('MAGIC WAND: Click on a region');
 }
