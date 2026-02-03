@@ -1114,7 +1114,15 @@ window.addEventListener('mouseup',()=>{if(S._panStart&&spaceDown){S._panStart=nu
 function setZoom(z){
   S.zoom=Math.max(0.1,Math.min(10,z));
   updateZoomDisplay();
-  if(S.pdfDoc){const sm=saveMarkupState();renderAllPages();restoreMarkupState(sm)}
+  if(S.pdfDoc){
+    const savedPage=S.currentPage;
+    const sm=saveMarkupState();
+    renderAllPages();
+    restoreMarkupState(sm);
+    // Restore scroll to the page the user was viewing
+    const wr=document.querySelector(`.page-wrapper[data-page="${savedPage}"]`);
+    if(wr)wr.scrollIntoView({behavior:'instant',block:'start'});
+  }
   updateSbRight();
 }
 
@@ -2501,6 +2509,7 @@ function showSnapIndicator(svg,snap){
 function startCalibration(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
   S.cadCalibrating=true;S.cadCalPoints=[];
+  for(let i=1;i<=S.pageCount;i++){const svg=document.querySelector(`svg.markup-layer[data-page="${i}"]`);if(svg)setupMarkupEvents(i,svg)}
   toast('📐 Click two points on the PDF to calibrate scale');
   setStatus('CALIBRATING: Click point 1 of 2');
 }
@@ -2559,6 +2568,7 @@ viewport.addEventListener('mousemove',e=>{
 function startMeasure(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
   S.cadMeasuring=true;S.cadMeasurePoints=[];
+  for(let i=1;i<=S.pageCount;i++){const svg=document.querySelector(`svg.markup-layer[data-page="${i}"]`);if(svg)setupMarkupEvents(i,svg)}
   toast('📏 Click two points to measure distance');
   setStatus('MEASURE: Click point 1 of 2');
 }
@@ -2585,7 +2595,7 @@ $('#btn-measure').addEventListener('click',startMeasure);
 /* ─── MAGIC WAND — Flood Fill + RDP Simplification ─── */
 function activateMagicWand(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
-  S.activeTool='magic-wand';
+  setTool('magic-wand');
   toast('🪄 Click on a region to auto-trace its boundary');
   setStatus('MAGIC WAND: Click on a region');
 }
@@ -2810,6 +2820,7 @@ function hexToACI(hex){
 
 function exportDXF(){
   if(!S.pdfDoc){toast('⚠ Open a PDF first');return}
+  try{
   const scale=S.cadScale||1;
   const unit=S.cadUnit||'px';
   let dxf='0\nSECTION\n2\nHEADER\n0\nENDSEC\n';
@@ -2824,53 +2835,60 @@ function exportDXF(){
   // ENTITIES section
   dxf+='0\nSECTION\n2\nENTITIES\n';
 
-  function xScale(x){return x/scale}
+  const xS=(x)=>x/scale;
+  let entityCount=0;
 
   // Export all pages
   for(let pn=1;pn<=S.pageCount;pn++){
     // Get page height for Y-axis inversion (pageDims is 0-indexed, uses .w/.h)
     const pw=S.pageDims[pn-1];
     const pageH=pw?pw.h:842;
-    function yInv(y){return(pageH-y)/scale}
+    const yI=(y)=>(pageH-y)/scale;
     const markups=S.markups[pn]||[];
     markups.forEach(m=>{
       const layerName=m.cadLayer||'MARKUP';
       const aci=hexToACI(m.style?.stroke||'#ffffff');
       if(m.type==='line'||m.type==='arrow'){
         dxf+=`0\nLINE\n8\n${layerName}\n62\n${aci}\n`;
-        dxf+=`10\n${xScale(m.data.x1).toFixed(4)}\n20\n${yInv(m.data.y1).toFixed(4)}\n30\n0.0\n`;
-        dxf+=`11\n${xScale(m.data.x2).toFixed(4)}\n21\n${yInv(m.data.y2).toFixed(4)}\n31\n0.0\n`;
+        dxf+=`10\n${xS(m.data.x1).toFixed(4)}\n20\n${yI(m.data.y1).toFixed(4)}\n30\n0.0\n`;
+        dxf+=`11\n${xS(m.data.x2).toFixed(4)}\n21\n${yI(m.data.y2).toFixed(4)}\n31\n0.0\n`;
+        entityCount++;
       }else if(m.type==='rect'||m.type==='cloud'){
-        // Export as LWPOLYLINE (closed rectangle)
         const{x,y,w,h}=m.data;
         dxf+=`0\nLWPOLYLINE\n8\n${layerName}\n62\n${aci}\n90\n4\n70\n1\n`;
         [[x,y],[x+w,y],[x+w,y+h],[x,y+h]].forEach(([px,py])=>{
-          dxf+=`10\n${xScale(px).toFixed(4)}\n20\n${yInv(py).toFixed(4)}\n`;
+          dxf+=`10\n${xS(px).toFixed(4)}\n20\n${yI(py).toFixed(4)}\n`;
         });
+        entityCount++;
       }else if(m.type==='ellipse'){
         const{cx,cy,rx,ry}=m.data;
         dxf+=`0\nELLIPSE\n8\n${layerName}\n62\n${aci}\n`;
-        dxf+=`10\n${xScale(cx).toFixed(4)}\n20\n${yInv(cy).toFixed(4)}\n30\n0.0\n`;
-        dxf+=`11\n${xScale(rx).toFixed(4)}\n21\n0.0\n31\n0.0\n`;
+        dxf+=`10\n${xS(cx).toFixed(4)}\n20\n${yI(cy).toFixed(4)}\n30\n0.0\n`;
+        dxf+=`11\n${xS(rx).toFixed(4)}\n21\n0.0\n31\n0.0\n`;
         dxf+=`40\n${(ry/rx).toFixed(4)}\n41\n0.0\n42\n6.2831853\n`;
+        entityCount++;
       }else if(m.type==='pen'){
         const pts=m.data.points.split(' ').map(p=>{const[px,py]=p.split(',');return[+px,+py]});
         if(pts.length<2)return;
         const closed=pts.length>2&&pts[0][0]===pts[pts.length-1][0]&&pts[0][1]===pts[pts.length-1][1];
         dxf+=`0\nLWPOLYLINE\n8\n${layerName}\n62\n${aci}\n90\n${pts.length}\n70\n${closed?1:0}\n`;
         pts.forEach(([px,py])=>{
-          dxf+=`10\n${xScale(px).toFixed(4)}\n20\n${yInv(py).toFixed(4)}\n`;
+          dxf+=`10\n${xS(px).toFixed(4)}\n20\n${yI(py).toFixed(4)}\n`;
         });
+        entityCount++;
       }else if(m.type==='text'||m.type==='callout'){
         const txt=m.data.text||'';
-        const tx=xScale(m.data.x),ty=yInv(m.data.y);
+        const tx=xS(m.data.x),ty=yI(m.data.y);
         const ht=(m.style?.fontSize||12)/scale;
         dxf+=`0\nTEXT\n8\n${layerName}\n62\n${aci}\n`;
         dxf+=`10\n${tx.toFixed(4)}\n20\n${ty.toFixed(4)}\n30\n0.0\n`;
         dxf+=`40\n${ht.toFixed(4)}\n1\n${txt}\n`;
+        entityCount++;
       }
     });
   }
+
+  if(entityCount===0){toast('⚠ No markups to export');return}
 
   dxf+='0\nENDSEC\n0\nEOF\n';
 
@@ -2880,11 +2898,12 @@ function exportDXF(){
   const a=document.createElement('a');
   a.href=url;a.download=(S.selectedFile||'export').replace(/\.[^.]+$/,'')+'.dxf';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 
-  const info=`Exported ${S.cadLayers.length} layers, scale: ${S.cadScale?'1 '+S.cadUnit+' = '+S.cadScale.toFixed(2)+' px':'uncalibrated'}`;
+  const info=`Exported ${entityCount} entities, ${S.cadLayers.length} layers, scale: ${S.cadScale?'1 '+S.cadUnit+' = '+S.cadScale.toFixed(2)+' px':'uncalibrated'}`;
   $('#cad-export-info').textContent=info;
-  toast('✓ DXF exported');
+  toast('✓ DXF exported — '+entityCount+' entities');
+  }catch(e){toast('✗ DXF export failed: '+e.message);console.error('DXF export error:',e)}
 }
 $('#btn-export-dxf').addEventListener('click',exportDXF);
 
