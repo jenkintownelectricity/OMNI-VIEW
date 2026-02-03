@@ -2617,16 +2617,17 @@ function doMagicWand(pn,clickX,clickY){
            Math.abs(data[i+2]-seedB)<=tolerance;
   }
 
-  // BFS flood fill
+  // BFS flood fill (capped at 500k pixels to avoid tracing entire background)
+  const MAX_FILL=500000;
   const visited=new Uint8Array(w*h);
   const queue=[[cx,cy]];
   visited[cy*w+cx]=1;
-  const filled=[];
   const boundary=[];
+  let fillCount=0;
 
-  while(queue.length>0){
+  while(queue.length>0&&fillCount<MAX_FILL){
     const[px,py]=queue.shift();
-    filled.push([px,py]);
+    fillCount++;
     const dirs=[[-1,0],[1,0],[0,-1],[0,1]];
     let isBoundary=false;
     for(const[dx,dy]of dirs){
@@ -2640,15 +2641,54 @@ function doMagicWand(pn,clickX,clickY){
     }
     if(isBoundary)boundary.push([px,py]);
   }
+  if(fillCount>=MAX_FILL){toast('⚠ Region too large — click on a smaller, enclosed area');setTool('select');return}
 
   if(boundary.length<4){toast('⚠ Region too small');return}
 
-  // Order boundary points (convex hull approximation for simple shapes)
-  // Use angle-based sorting from centroid
-  let sumX=0,sumY=0;
-  boundary.forEach(([bx,by])=>{sumX+=bx;sumY+=by});
-  const cenX=sumX/boundary.length,cenY=sumY/boundary.length;
-  boundary.sort((a,b)=>Math.atan2(a[1]-cenY,a[0]-cenX)-Math.atan2(b[1]-cenY,b[0]-cenX));
+  // Contour trace: walk the boundary using Moore neighborhood tracing
+  // Build a lookup set for fast boundary membership checks
+  const bSet=new Set();
+  boundary.forEach(([bx,by])=>bSet.add(by*w+bx));
+
+  // Find topmost-leftmost boundary pixel as start
+  let startIdx=0;
+  for(let i=1;i<boundary.length;i++){
+    if(boundary[i][1]<boundary[startIdx][1]||(boundary[i][1]===boundary[startIdx][1]&&boundary[i][0]<boundary[startIdx][0]))startIdx=i;
+  }
+  const contour=[];
+  const mooreN=[[-1,0],[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1]]; // 8-connected neighbors (CCW from left)
+  const bVisited=new Set();
+  let cur=boundary[startIdx];
+  let dir=0; // start direction: left
+  const maxSteps=boundary.length*3;
+  for(let step=0;step<maxSteps;step++){
+    const key=cur[1]*w+cur[0];
+    if(bVisited.has(key)&&contour.length>2)break;
+    bVisited.add(key);
+    contour.push(cur);
+    // Search Moore neighborhood for next boundary pixel
+    let found=false;
+    for(let i=0;i<8;i++){
+      const ni=(dir+i)%8;
+      const nx=cur[0]+mooreN[ni][0],ny=cur[1]+mooreN[ni][1];
+      if(nx>=0&&nx<w&&ny>=0&&ny<h&&bSet.has(ny*w+nx)){
+        cur=[nx,ny];
+        dir=(ni+5)%8; // backtrack direction for next iteration
+        found=true;break;
+      }
+    }
+    if(!found)break;
+  }
+
+  if(contour.length<4){toast('⚠ Could not trace contour');return}
+
+  // Subsample contour to reduce point count before RDP (take every Nth point)
+  const maxPts=2000;
+  let sampled=contour;
+  if(contour.length>maxPts){
+    const step=Math.ceil(contour.length/maxPts);
+    sampled=contour.filter((_,i)=>i%step===0);
+  }
 
   // Ramer-Douglas-Peucker simplification
   function rdp(pts,epsilon){
@@ -2673,8 +2713,8 @@ function doMagicWand(pn,clickX,clickY){
     return Math.abs(dy*p[0]-dx*p[1]+b[0]*a[1]-b[1]*a[0])/len;
   }
 
-  const epsilon=Math.max(2,Math.min(w,h)/200);
-  const simplified=rdp(boundary,epsilon);
+  const epsilon=Math.max(3,Math.min(w,h)/100);
+  const simplified=rdp(sampled,epsilon);
 
   // Convert canvas coords back to SVG coords
   const svgPts=simplified.map(([bx,by])=>[bx/w*vb.width,by/h*vb.height]);
@@ -2784,15 +2824,14 @@ function exportDXF(){
   // ENTITIES section
   dxf+='0\nSECTION\n2\nENTITIES\n';
 
-  // Get page height for Y-axis inversion
-  const pw=S.pageDims[0];
-  const pageH=pw?pw.height:842; // A4 default
-
-  function yInv(y){return(pageH-y)/scale}
   function xScale(x){return x/scale}
 
   // Export all pages
   for(let pn=1;pn<=S.pageCount;pn++){
+    // Get page height for Y-axis inversion (pageDims is 0-indexed, uses .w/.h)
+    const pw=S.pageDims[pn-1];
+    const pageH=pw?pw.h:842;
+    function yInv(y){return(pageH-y)/scale}
     const markups=S.markups[pn]||[];
     markups.forEach(m=>{
       const layerName=m.cadLayer||'MARKUP';
